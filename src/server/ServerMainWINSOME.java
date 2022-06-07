@@ -1,3 +1,7 @@
+package server;
+
+import shared.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;

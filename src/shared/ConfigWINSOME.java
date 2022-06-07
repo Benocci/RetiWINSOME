@@ -1,3 +1,5 @@
+package shared;
+
 public class ConfigWINSOME {
     private String address;
     private int port;
