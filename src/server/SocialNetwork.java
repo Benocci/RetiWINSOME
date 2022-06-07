@@ -24,11 +24,11 @@ public class SocialNetwork {
         postMap = new ConcurrentHashMap<>();
     }
 
-    public void addUser(String username){
+    public void addUser(User to_add){
         Set<String> list = new HashSet<>();
-        users.putIfAbsent(username, new User(username, "prova", list));
-        followersMap.put(username, new ArrayList<>());
-        followingMap.put(username, new ArrayList<>());
+        users.putIfAbsent(to_add.getUsername(), to_add);
+        followersMap.put(to_add.getUsername(), new ArrayList<>());
+        followingMap.put(to_add.getUsername(), new ArrayList<>());
     }
 
     public ArrayList<String> listUsers(User user){

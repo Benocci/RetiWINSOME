@@ -34,7 +34,7 @@ public class ServerMainWINSOME {
             config = objectMapper.readValue(file, ConfigWINSOME.class);
         }
         catch (Exception e){
-            throw new RuntimeException("ERRORE: file di config -> " + e.getMessage());
+            throw new RuntimeException("ERRORE: file di config del server -> " + e.getMessage());
         }
 
         System.out.println("Stampo porta=" + config.getPort() + "\nStampo indirizzo=" + config.getAddress());
