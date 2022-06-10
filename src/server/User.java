@@ -1,17 +1,18 @@
 package server;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
 
 public class User {
     private final String username;
     private final String password;
-    private final Set<String> tags;
+    private final ArrayList<String> tags;
     private final Wallet wallet;
     private final Date date;
 
 
-    public User(String username, String password, Set<String> tags){
+    public User(String username, String password, ArrayList<String> tags){
         this.username = username;
         this.password = password;
         this.tags = tags;
@@ -35,7 +36,7 @@ public class User {
         return wallet;
     }
 
-    public Set<String> getTags() {
+    public ArrayList<String> getTags() {
         return tags;
     }
 }

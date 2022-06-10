@@ -4,6 +4,7 @@ import exception.*;
 import server.Post;
 
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,10 @@ public class SocialNetwork {
         followersMap = new ConcurrentHashMap<>();
         followingMap = new ConcurrentHashMap<>();
         postMap = new ConcurrentHashMap<>();
+    }
+
+    public Boolean userExist(String username){
+        return users.containsKey(username);
     }
 
     public void addUser(User to_add){

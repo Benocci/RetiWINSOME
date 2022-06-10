@@ -1,13 +1,16 @@
 package client;
 
 import server.RegistrationRMI;
+import server.RegistrationRMIInterface;
 import shared.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -52,22 +55,28 @@ public class ClientMainWINSOME {
 
         System.out.println("Stampo porta=" + config.getPort() + "\nStampo indirizzo=" + config.getAddress());
 
+        boolean continueLoop = true;
 
-        while(true) {
-            try{
-                socket = new Socket(config.getAddress(), config.getPort());
-            }
-            catch (IOException e){
+        while(continueLoop) {
+            String line_readed = "";
+            Scanner scanner = new Scanner(System.in);
+
+            BufferedReader bufferedReader = null;
+            ByteBuffer byteBuffer = null;
+            SocketChannel socketChannel = null;
+            try {
+                socketChannel = SocketChannel.open();
+                socketChannel.connect(new InetSocketAddress(config.getAddress(), config.getPort()));
+                socketChannel.configureBlocking(true);
+                bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+                byteBuffer = ByteBuffer.wrap(new byte[1024]);
+
+            }catch(IOException e){
                 e.printStackTrace();
-                System.out.println("Connessione non stabilita!");
-                break;
+                System.exit(-1);
             }
 
             System.out.println("Connessione stabilita con il server sulla porta " + config.getPort());
-
-            String line_readed = "";
-            Scanner scanner = new Scanner(System.in);
-            boolean continueLoop = true;
 
             try {
 
@@ -80,14 +89,20 @@ public class ClientMainWINSOME {
                         continue;
                     }
 
-
                     ArrayList<String> line_parsed = new ArrayList<>();
                     Collections.addAll(line_parsed, line_readed.split(" "));
-
                     String option = line_parsed.remove(0);
 
                     switch (option) {
                         case "exit": {
+
+                            byteBuffer.put(line_readed.getBytes());
+                            byteBuffer.flip();
+                            while (byteBuffer.hasRemaining()){
+                                socketChannel.write(byteBuffer);
+                            }
+                            byteBuffer.clear();
+
                             continueLoop = false;
                             break;
                         }
@@ -101,10 +116,10 @@ public class ClientMainWINSOME {
                             tags.addAll(line_parsed.subList(2, line_parsed.size()));
 
                             Registry registry;
-                            RegistrationRMI registrationRMI;
+                            RegistrationRMIInterface registrationRMI;
                             try {
-                                registry = LocateRegistry.getRegistry(config.getAddress(), config.getPort());
-                                registrationRMI = (RegistrationRMI) registry.lookup(config.getServer_rmi_name());
+                                registry = LocateRegistry.getRegistry(config.getAddress(), config.getServer_rmi_port());
+                                registrationRMI = (RegistrationRMIInterface) registry.lookup(config.getServer_rmi_name());
                             } catch (RemoteException | NotBoundException e) {
                                 e.printStackTrace();
                                 return;
@@ -129,11 +144,16 @@ public class ClientMainWINSOME {
                         case "rate":
                         case "comment":
                         case "wallet": {
+                            System.out.println("PROVA di invio al server di " + line_readed);
 
-                            System.out.println("Operazione = " + option);
-                            for (String s : line_parsed) {
-                                System.out.println("Argomento = " + s);
+
+                            byteBuffer.put(line_readed.getBytes());
+                            byteBuffer.flip();
+                            while (byteBuffer.hasRemaining()){
+                                socketChannel.write(byteBuffer);
                             }
+                            byteBuffer.clear();
+
                             break;
                         }
                         case "help": {
@@ -164,6 +184,7 @@ public class ClientMainWINSOME {
                         }
                     }
                 }
+                socketChannel.close();
             }
             catch (IOException e){
                 e.printStackTrace();

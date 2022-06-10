@@ -41,7 +41,7 @@ public class Wallet {
         try{
             URL url = new URL("https://www.random.org/decimal-fractions/?num=1&dec=20&col=1&format=plain&rnd=new");
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-            if(httpURLConnection.getResponseCode() >= 400){
+            if(httpURLConnection.getResponseCode() >= 300){
                 System.out.println("ERROR: random.org unreachable");
             }
             else{

@@ -1,5 +1,6 @@
 {
   "port": "6789",
   "address" : "localhost",
-  "server_rmi_name" : "REGISTRATION"
+  "server_rmi_name" : "REGISTRATION",
+  "server_rmi_port" : "6001"
 }
