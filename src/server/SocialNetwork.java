@@ -1,10 +1,8 @@
 package server;
 
 import exception.*;
-import server.Post;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,10 +28,13 @@ public class SocialNetwork {
     }
 
     public void addUser(User to_add){
-        Set<String> list = new HashSet<>();
         users.putIfAbsent(to_add.getUsername(), to_add);
         followersMap.putIfAbsent(to_add.getUsername(), new ArrayList<>());
         followingMap.putIfAbsent(to_add.getUsername(), new ArrayList<>());
+    }
+
+    public User getUser(String username){
+        return users.get(username);
     }
 
     public ArrayList<String> listUsers(User user){
@@ -76,7 +77,10 @@ public class SocialNetwork {
         followingMap.get(to_unfollow).remove(username);
     }
 
-    public ArrayList<Post> viewBlog(String username) {
+    public ArrayList<Post> viewBlog(String username) throws UserNotExistException {
+        if(!users.containsKey(username)){
+            throw new UserNotExistException();
+        }
         ArrayList<Post> to_return = new ArrayList();
 
         for (Post p: postMap.values()) {
@@ -147,7 +151,6 @@ public class SocialNetwork {
     }
 
 
-    //SHOW FEED
     public Wallet getWallet(String username) throws UserNotExistException {
         if(!users.containsKey(username)){
             throw new UserNotExistException();

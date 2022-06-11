@@ -21,12 +21,14 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ServerMainWINSOME {
     static SocialNetwork socialNetwork;
+    public static final ConcurrentHashMap<String, String> loggedUsers = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
         System.out.println("Avvio server in corso...");
@@ -135,9 +137,10 @@ public class ServerMainWINSOME {
                         if (to_read.toString().contains("exit")) {
                             socketChannel.close();
                             System.out.println("Connessione conclusa!");
+                            break;
                         }
 
-                        threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel, to_read.toString()));
+                        threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel.getRemoteAddress().toString(), to_read.toString()));
                     }
                     else if(selectionKey.isWritable()){
                         System.out.println("C'è da scrivere!");

@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.rmi.NotBoundException;
@@ -19,9 +18,6 @@ import java.util.*;
 
 
 public class ClientMainWINSOME {
-
-    static Socket socket;
-
     public static ArrayList<String> follower = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -58,7 +54,7 @@ public class ClientMainWINSOME {
         boolean continueLoop = true;
 
         while(continueLoop) {
-            String line_readed = "";
+            String line_read = "";
             Scanner scanner = new Scanner(System.in);
 
             BufferedReader bufferedReader = null;
@@ -84,19 +80,20 @@ public class ClientMainWINSOME {
                 while (continueLoop) {
                     System.out.print("> ");
 
-                    line_readed = scanner.nextLine();
-                    if (line_readed.equals("")) {
+                    line_read = scanner.nextLine();
+                    if (line_read.equals("")) {
                         continue;
                     }
 
+
                     ArrayList<String> line_parsed = new ArrayList<>();
-                    Collections.addAll(line_parsed, line_readed.split(" "));
+                    Collections.addAll(line_parsed, line_read.split(" "));
                     String option = line_parsed.remove(0);
 
                     switch (option) {
                         case "exit": {
 
-                            byteBuffer.put(line_readed.getBytes());
+                            byteBuffer.put(line_read.getBytes());
                             byteBuffer.flip();
                             while (byteBuffer.hasRemaining()){
                                 socketChannel.write(byteBuffer);
@@ -127,8 +124,6 @@ public class ClientMainWINSOME {
 
                             registrationRMI.register(line_parsed.get(0), line_parsed.get(1), tags);
 
-                            System.out.println("ALL GOOD!");
-
                             break;
                         }
                         case "login":
@@ -144,10 +139,8 @@ public class ClientMainWINSOME {
                         case "rate":
                         case "comment":
                         case "wallet": {
-                            System.out.println("PROVA di invio al server di " + line_readed);
 
-
-                            byteBuffer.put(line_readed.getBytes());
+                            byteBuffer.put(line_read.getBytes());
                             byteBuffer.flip();
                             while (byteBuffer.hasRemaining()){
                                 socketChannel.write(byteBuffer);
