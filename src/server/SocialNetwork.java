@@ -3,8 +3,6 @@ package server;
 import exception.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +19,7 @@ public class SocialNetwork {
         followersMap = new ConcurrentHashMap<>();
         followingMap = new ConcurrentHashMap<>();
         postMap = new ConcurrentHashMap<>();
+        post_id = new AtomicInteger();
     }
 
     public Boolean userExist(String username){
@@ -42,8 +41,10 @@ public class SocialNetwork {
 
         for (User u: users.values()) {
             for (String s: user.getTags()) {
-                if(u.getTags().contains(s)){
-                    to_return.add(u.getUsername());
+                if(u.getTags().contains(s) && !u.getUsername().equals(user.getUsername())){
+                    if(!to_return.contains(u.getUsername())){
+                        to_return.add(u.getUsername());
+                    }
                 }
             }
         }

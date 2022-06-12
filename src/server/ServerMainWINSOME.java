@@ -114,27 +114,42 @@ public class ServerMainWINSOME {
                         SocketChannel socketChannel = serverSocketChannel.accept();
                         socketChannel.configureBlocking(false);
 
-                        ByteBuffer scByteBuffer = ByteBuffer.wrap(new byte[1024]);
                         System.out.println("Connessione stabilita con il client: " + socketChannel.getRemoteAddress());
-                        socketChannel.register(selector, SelectionKey.OP_READ, scByteBuffer);
+                        socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }
                     if(selectionKey.isReadable()){
-                        StringBuilder to_read = new StringBuilder();
                         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                         socketChannel.configureBlocking(false);
-                        ByteBuffer buffer = (ByteBuffer) selectionKey.attachment();
 
-                        int readBytes = socketChannel.read(buffer);
-                        if(readBytes < 0){
-                            socketChannel.close();
-                            throw new IOException("Connessione fallita");
+                        ByteBuffer request;
+                        if(selectionKey.attachment() == null){
+                            ByteBuffer request_lenght = ByteBuffer.allocate(Integer.BYTES);
+                            var nread = socketChannel.read(request_lenght);
+                            assert (nread == Integer.BYTES);
+                            request_lenght.flip();
+                            int msgLen = request_lenght.getInt();
+                            System.out.println("Lunghezza messaggio: " + msgLen);
+
+                            request = ByteBuffer.allocate(msgLen);
+                            selectionKey.attach(request);
                         }
 
-                        buffer.flip();
-                        while (buffer.hasRemaining()) to_read.append((char) buffer.get());
-                        buffer.flip();
+                        request = (ByteBuffer) selectionKey.attachment();
+                        int readBytes = socketChannel.read(request);
+                        if(readBytes < 0){
+                            socketChannel.close();
+                            throw new IOException("Connessione chiusa!");
+                        }
 
-                        if (to_read.toString().contains("exit")) {
+                        request.flip();
+                        String to_read = new String(request.array());
+                        System.out.println("Arrivato: " + to_read + " lungo: " + to_read.length());
+
+                        request.clear();
+                        selectionKey.attach(null);
+
+
+                        if (to_read.contains("exit")) {
                             socketChannel.close();
                             System.out.println("Connessione conclusa!");
                             break;
@@ -143,17 +158,19 @@ public class ServerMainWINSOME {
                         threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel.getRemoteAddress().toString(), to_read.toString()));
                     }
                     else if(selectionKey.isWritable()){
-                        System.out.println("C'è da scrivere!");
+                        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                        ByteBuffer response = (ByteBuffer) selectionKey.attachment();
 
+                        socketChannel.write(response);
+                        response.clear();
+
+                        socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }
                 }
             }
-            catch (SocketException e){
-                break;
-            }
             catch (IOException ex){
                 ex.printStackTrace();
-                return;
+                break;
             }
         }
 

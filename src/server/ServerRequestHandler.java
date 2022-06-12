@@ -6,8 +6,9 @@ import exception.UserNotExistException;
 import exception.VoteNotValidException;
 import shared.ConfigWINSOME;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
+
+import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -27,7 +28,6 @@ public class ServerRequestHandler implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Avvio thread");
 
         System.out.println("Messaggio ricevuto dal client: " + channel + ": " + request);
 
@@ -78,6 +78,7 @@ public class ServerRequestHandler implements Runnable {
             case "list":{
                 if(!ServerMainWINSOME.loggedUsers.containsKey(channel)){
                     System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
+                    return;
                 }
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 ArrayList<String> list = null;
@@ -284,6 +285,16 @@ public class ServerRequestHandler implements Runnable {
             default:{
                 System.out.println("Messaggio dal client non riconosciuto!");
             }
+
+            String res = "ALL GOOD";
+
+            ByteBuffer to_send = ByteBuffer.allocate(Integer.BYTES + res.length());
+            to_send.putInt(res.length());
+            to_send.put(res.getBytes());
+            to_send.flip();
+
+            //capisci come fare la register sul selector per mandare
+            //socketchannel.register(selector, SelectionKey.OP_WRITE, to_send);
         }
     }
 }
