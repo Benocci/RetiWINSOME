@@ -54,6 +54,12 @@ public class Post {
         return to_return;
     }
 
+
+
+    public ConcurrentHashMap<String, Integer> getVotes() {
+        return votes;
+    }
+
     public String getTitle() {
         return title;
     }

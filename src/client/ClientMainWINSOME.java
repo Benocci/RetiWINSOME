@@ -135,6 +135,7 @@ public class ClientMainWINSOME {
                 socketChannel.write(request);
                 request.clear();
 
+                System.out.println("Attendo risposta..");
                 ByteBuffer response_lenght, response;
                 response_lenght = ByteBuffer.allocate(Integer.BYTES);
                 socketChannel.read(response_lenght);
@@ -147,11 +148,15 @@ public class ClientMainWINSOME {
                 response.flip();
                 String line_write = new String(response.array());
 
-                System.out.println(line_write);
-
-                if(option.equals("exit")){
+                if(line_write.equals("ok")){
+                    System.out.println("Operazione avvenuta con successo!");
+                }
+                else if(line_write.equals("exit")){
                     socketChannel.close();
                     break;
+                }
+                else{
+                    System.out.println("Operazione non avvenuta: " + line_write);
                 }
 
             }

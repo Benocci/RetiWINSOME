@@ -2,5 +2,8 @@
   "port": "6789",
   "address" : "localhost",
   "server_rmi_name" : "REGISTRATION",
-  "server_rmi_port" : "6001"
+  "server_rmi_port" : "6001",
+  "multicast_port" : "7000",
+  "multicast_address" : "localhost",
+  "reward_timeout" : "10000"
 }

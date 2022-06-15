@@ -8,12 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -142,27 +138,22 @@ public class ServerMainWINSOME {
                         }
 
                         request.flip();
-                        String to_read = new String(request.array());
-                        System.out.println("Arrivato: " + to_read + " lungo: " + to_read.length());
+                        String read = new String(request.array());
+                        System.out.println("Arrivato: " + read + " lungo: " + read.length());
 
                         request.clear();
                         selectionKey.attach(null);
 
-
-                        if (to_read.contains("exit")) {
-                            socketChannel.close();
-                            System.out.println("Connessione conclusa!");
-                            break;
+                        try {
+                            socketChannel.register(selector, SelectionKey.OP_WRITE, read);
+                        } catch (ClosedChannelException e) {
+                            e.printStackTrace();
                         }
-
-                        threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel.getRemoteAddress().toString(), to_read.toString()));
                     }
                     else if(selectionKey.isWritable()){
                         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                        ByteBuffer response = (ByteBuffer) selectionKey.attachment();
-
-                        socketChannel.write(response);
-                        response.clear();
+                        String request = (String) selectionKey.attachment();
+                        threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request));
 
                         socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }
@@ -193,4 +184,5 @@ public class ServerMainWINSOME {
         }
 
     }
+
 }

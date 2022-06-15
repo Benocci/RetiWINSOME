@@ -151,6 +151,9 @@ public class SocialNetwork {
         return postMap.get(id_post);
     }
 
+    public ConcurrentHashMap<Integer, Post> getPostMap() {
+        return postMap;
+    }
 
     public Wallet getWallet(String username) throws UserNotExistException {
         if(!users.containsKey(username)){
