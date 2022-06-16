@@ -1,9 +1,6 @@
 package server;
 
-import shared.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 
 import java.io.File;
 import java.io.IOException;
@@ -32,18 +29,18 @@ public class ServerMainWINSOME {
     public static final ConcurrentHashMap<String, String> loggedUsers = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
-        System.out.println("Avvio server in corso...");
+
 
         File file;
         if(args.length < 1){
-            file = new File("src\\config.json");
+            file = new File("src\\configFile\\configServer.json");
             System.out.println("Server avviato con la configurazione di default.");
         }
         else{
             file = new File(args[0]);
 
             if(!file.exists()){
-                file = new File("src\\config.json");
+                file = new File("src\\configFile\\configServer.json");
                 System.out.println("Server avviato con la configurazione di default.");
             }
             else{
@@ -51,33 +48,42 @@ public class ServerMainWINSOME {
             }
         }
 
+        //lettura del file di config json e traduzione in classe java
         ObjectMapper objectMapper = new ObjectMapper();
-        ConfigWINSOME config;
+        ConfigServerWINSOME config;
         try {
-            config = objectMapper.readValue(file, ConfigWINSOME.class);
+            config = objectMapper.readValue(file, ConfigServerWINSOME.class);
         }
         catch (Exception e){
             throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
         }
 
+        //inizializzo il socialnetwork
         socialNetwork = new SocialNetwork();
 
+        //inizializzo e avvio il sistema di rewards
+        RewardsCalculation rewardsCalculation = new RewardsCalculation(config, socialNetwork);
+        Thread rewardsThread = new Thread(rewardsCalculation);
+        rewardsThread.start();
+
+        //inizializzazione del sisema rmi per la registrazione degli utenti
         RegistrationRMI registrationRMI = new RegistrationRMI();
         try{
             RegistrationRMIInterface registrationStub = (RegistrationRMIInterface) UnicastRemoteObject.exportObject(registrationRMI, 0);
-            Registry registry = LocateRegistry.createRegistry(config.getServer_rmi_port());
-            registry.rebind(config.getServer_rmi_name(), registrationStub);
+            Registry registry = LocateRegistry.createRegistry(config.getRmi_registration_port());
+            registry.rebind(config.getRmi_registration_name(), registrationStub);
         }
         catch(RemoteException e) {
             e.printStackTrace();
             System.exit(-1);
         }
 
+        //inizializzazione del sistema di callback con rmi ai client
         ServerCallback serverCallback = new ServerCallback();
         try{
             ServerCallbackInterface callbackStub = (ServerCallbackInterface) UnicastRemoteObject.exportObject(serverCallback, 0);
-            Registry registry = LocateRegistry.createRegistry(config.getServer_rmi_port()+1);
-            registry.rebind(config.getServer_rmi_name(), callbackStub);
+            Registry registry = LocateRegistry.createRegistry(config.getRmi_callback_port());
+            registry.rebind(config.getRmi_callback_name(), callbackStub);
         }
         catch(RemoteException e) {
             e.printStackTrace();
@@ -86,12 +92,11 @@ public class ServerMainWINSOME {
 
         ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
 
-        System.out.println("Stampo porta=" + config.getPort() + "\nStampo indirizzo=" + config.getAddress());
-
+        //inizializzazione del sistema java NIO su cui girerà la comunicazione tcp principale (multiplexing)
         Selector selector = null;
         try{
             ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-            serverSocketChannel.socket().bind(new InetSocketAddress(config.getPort()));
+            serverSocketChannel.socket().bind(new InetSocketAddress(config.getServer_port()));
             serverSocketChannel.configureBlocking(false);
             selector = Selector.open();
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
@@ -158,7 +163,7 @@ public class ServerMainWINSOME {
                     else if(selectionKey.isWritable()){
                         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                         String request = (String) selectionKey.attachment();
-                        threadPool.execute(new ServerRequestHandler(config, socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request));
+                        threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request));
 
                         socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }
@@ -179,6 +184,8 @@ public class ServerMainWINSOME {
         catch (InterruptedException e){
             threadPool.shutdownNow();
         }
+
+        rewardsCalculation.stopLoop();
 
         try{
             UnicastRemoteObject.unexportObject(registrationRMI, false);

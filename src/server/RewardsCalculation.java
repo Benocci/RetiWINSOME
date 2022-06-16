@@ -1,7 +1,5 @@
 package server;
 
-import shared.*;
-
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -12,12 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *  OVERVIEW:
  */
 public class RewardsCalculation implements Runnable{
-    ConfigWINSOME config;
+    ConfigServerWINSOME config;
     SocialNetwork social;
 
-    private volatile Boolean continueLoop = true;
+    private Boolean continueLoop = true;
 
-    public RewardsCalculation(ConfigWINSOME config, SocialNetwork social){
+    public RewardsCalculation(ConfigServerWINSOME config, SocialNetwork social){
         this.config = config;
         this.social = social;
     }
@@ -30,8 +28,7 @@ public class RewardsCalculation implements Runnable{
      */
     @Override
     public void run() {
-
-        try (DatagramSocket datagramSocketServer = new DatagramSocket(config.getMulticast_port()+1)) {
+        try ( DatagramSocket datagramSocketServer = new DatagramSocket(config.getMulticast_port()) ){
             DatagramPacket datagramPacket;
 
             ConcurrentHashMap<Integer, Post> postMap;
@@ -57,14 +54,9 @@ public class RewardsCalculation implements Runnable{
                         datagramSocketServer.send(datagramPacket);
                     }
                 }
+
             }
 
-            try{
-                Thread.sleep(config.getReward_timeout());
-            }
-            catch (InterruptedException ignore){
-                ;
-            }
 
 
         } catch (IOException e) {
@@ -74,25 +66,19 @@ public class RewardsCalculation implements Runnable{
     }
 
     /*
-     * REQUIRES:
-     * MODIFIES:
-     * EFFECTS:
-     * THROWS:
+     * MODIFIES: this.continueLoop
+     * EFFECTS: setta a false continueLoop
      */
     public void stopLoop(){
         this.continueLoop = false;
     }
 
     /*
-     * REQUIRES:
-     * MODIFIES:
-     * EFFECTS:
-     * THROWS:
+     * REQUIRES: post != null
+     * EFFECTS: calcola il profitto del singolo post passato come argomento
      */
     private double profitCalculation(Post post){
         return post.getVote();
     }
-
-
 
 }

@@ -1,9 +1,9 @@
 package client;
 
 import server.RegistrationRMIInterface;
-import shared.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import server.ServerCallbackInterface;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -13,6 +13,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
 
 /*
@@ -28,14 +29,14 @@ public class ClientMainWINSOME {
         //validazione del file di config
         File file;
         if(args.length < 1){//se non è stato passato un file di config uso quello di default
-            file = new File("src\\config.json");
+            file = new File("src\\configFile\\configClient.json");
             System.out.println("Client avviato con la configurazione di default.");
         }
         else{//altrimenti leggo il file json passato per argomento
             file = new File(args[0]);
 
             if(!file.exists()){
-                file = new File("src\\config.json");
+                file = new File("src\\configFile\\configClient.json");
                 System.out.println("Client avviato con la configurazione di default.");
             }
             else{
@@ -45,16 +46,16 @@ public class ClientMainWINSOME {
 
         //lettura del file di config e conversione in oggetto java:
         ObjectMapper objectMapper = new ObjectMapper();
-        ConfigWINSOME config;
+        ConfigClientWINSOME config;
         try {
-            config = objectMapper.readValue(file, ConfigWINSOME.class);
+            config = objectMapper.readValue(file, ConfigClientWINSOME.class);
         }
         catch (Exception e){
             throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
         }
 
         //inizializzazione e lancio del thread che riceve i datagrammi UDP multicast dei rewards:
-        RewardsNotification rewardsNotification = new RewardsNotification(config.getMulticast_address(), config.getServer_rmi_port());
+        RewardsNotification rewardsNotification = new RewardsNotification(config.getMulticast_address(), config.getMulticast_port());
         Thread rewardsNotificationThread = new Thread(rewardsNotification);
         rewardsNotificationThread.start();
 
@@ -63,7 +64,7 @@ public class ClientMainWINSOME {
         SocketChannel socketChannel;
         try{
             socketChannel = SocketChannel.open();
-            socketChannel.connect(new InetSocketAddress(config.getAddress(), config.getPort()));
+            socketChannel.connect(new InetSocketAddress(config.getServer_address(), config.getServer_port()));
             socketChannel.configureBlocking(true);
         }
         catch (IOException e){
@@ -71,7 +72,12 @@ public class ClientMainWINSOME {
             return;
         }
 
-        System.out.println("Connessione stabilita con il server su " + config.getAddress() + "/" + config.getPort());
+        //inizializzo le interfacce per il callback
+        ServerCallbackInterface server = null;
+        NotifyEventInterface callbackObj = null;
+        NotifyEventInterface stub = null;
+
+        System.out.println("Connessione stabilita con il server su " + config.getServer_address() + "/" + config.getServer_port());
         try {
             System.out.println("Avvio CLI...");
             while (true) { //ciclo principale del client
@@ -90,6 +96,7 @@ public class ClientMainWINSOME {
                 //la testa della lista corrisponde al comando:
                 String option = line_parsed.remove(0);
 
+
                 if(option.equals("register")){//caso comando = register
                     if (line_parsed.size() < 2 || line_parsed.size() > 7) { //controllo di avere il numero di argomenti corretto
                         System.out.println("Opzione non corretta, per aiuto digitare help.");
@@ -103,8 +110,8 @@ public class ClientMainWINSOME {
                     Registry registry;
                     RegistrationRMIInterface registrationRMI;
                     try {
-                        registry = LocateRegistry.getRegistry(config.getAddress(), config.getServer_rmi_port());
-                        registrationRMI = (RegistrationRMIInterface) registry.lookup(config.getServer_rmi_name());
+                        registry = LocateRegistry.getRegistry(config.getServer_address(), config.getServer_registryRMI_port());
+                        registrationRMI = (RegistrationRMIInterface) registry.lookup(config.getServer_registryRMI_name());
                     } catch (RemoteException | NotBoundException e) {
                         e.printStackTrace();
                         return;
@@ -174,6 +181,28 @@ public class ClientMainWINSOME {
                 }
                 else{
                     System.out.println("Operazione non avvenuta: " + line_write);
+                }
+
+                if(option.equals("login") && line_write.equals("ok")){
+                    try {
+                        Registry registry = LocateRegistry.getRegistry(config.getRmi_callback_port());
+                        server = (ServerCallbackInterface) registry.lookup(config.getRmi_callback_name());
+                        callbackObj = new NotifyEvent();
+                        stub = (NotifyEventInterface) UnicastRemoteObject.exportObject(callbackObj, 0);
+                        server.registerForCallback(line_parsed.get(0),stub);
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+
+                if(option.equals("logout") && line_write.equals("ok") && server != null){
+                    try{
+                        server.unregisterForCallback(line_parsed.get(0));
+                    }
+                    catch (RemoteException e){
+                        e.printStackTrace();
+                    }
                 }
 
             }

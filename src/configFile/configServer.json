@@ -1,0 +1,11 @@
+{
+  "server_address" : "localhost",
+  "server_port" : "5000",
+  "rmi_registration_name" : "REGISTRATION-NAME",
+  "rmi_registration_port" : "2000",
+  "multicast_address" : "localhost",
+  "multicast_port" : "6789",
+  "rmi_callback_name" : "CALLBACK-NAME",
+  "rmi_callback_port" : "5555",
+  "rewards_timeout" : "5000"
+}

@@ -21,7 +21,7 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
      * THROWS:
      */
     @Override
-    public void registerForCallback(String username, NotifyEventInterface ClientInterface) throws RemoteException {
+    public synchronized void registerForCallback(String username, NotifyEventInterface ClientInterface) throws RemoteException {
         clients.putIfAbsent(username, ClientInterface);
     }
 
@@ -32,7 +32,7 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
      * THROWS:
      */
     @Override
-    public void unregisterForCallback(String username) throws RemoteException {
+    public synchronized void unregisterForCallback(String username) throws RemoteException {
         clients.remove(username);
     }
 

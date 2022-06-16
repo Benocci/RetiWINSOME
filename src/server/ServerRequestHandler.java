@@ -1,7 +1,6 @@
 package server;
 
 import exception.*;
-import shared.ConfigWINSOME;
 
 
 import java.io.IOException;
@@ -16,15 +15,13 @@ import java.util.Collections;
  *  OVERVIEW: classe runnable che viene usata dalla threadpool per elaborare le richieste del client e inviare la risposta
  */
 public class ServerRequestHandler implements Runnable {
-    ConfigWINSOME config;
     SocialNetwork social;
     String channel;
     SocketChannel socketChannel;
     Selector selector;
     String request;
 
-    public ServerRequestHandler(ConfigWINSOME config, SocialNetwork social, String channel, SocketChannel socketChannel, Selector selector, String request){
-        this.config = config;
+    public ServerRequestHandler(SocialNetwork social, String channel, SocketChannel socketChannel, Selector selector, String request){
         this.channel = channel;
         this.socketChannel = socketChannel;
         this.selector = selector;

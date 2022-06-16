@@ -1,0 +1,10 @@
+{
+  "server_address" : "localhost",
+  "server_port" : "5000",
+  "server_registryRMI_name" : "REGISTRATION-NAME",
+  "server_registryRMI_port" : "2000",
+  "multicast_address" : "239.255.1.3",
+  "multicast_port" : "6790",
+  "rmi_callback_name" : "CALLBACK-NAME",
+  "rmi_callback_port": "2000"
+}
