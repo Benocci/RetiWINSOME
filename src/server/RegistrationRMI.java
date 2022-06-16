@@ -3,6 +3,10 @@ package server;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW:
+ */
 public class RegistrationRMI implements RegistrationRMIInterface{
 
     @Override

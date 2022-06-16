@@ -2,8 +2,11 @@ package server;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Set;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: classe che rappresenta un utente all'interno di WINSOME
+ */
 public class User {
     private final String username;
     private final String password;
@@ -19,6 +22,8 @@ public class User {
         this.wallet = new Wallet(username);
         this.date = new Date();
     }
+
+    //metodi get dei campi dell'utente
 
     public Date getDate() {
         return date;

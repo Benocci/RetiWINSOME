@@ -1,13 +1,16 @@
 package shared;
-
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: classe che rappresenta un file di config ( viene tradotta da un file json )
+ */
 public class ConfigWINSOME {
-    private String address;
-    private int port;
-    private String server_rmi_name;
-    private int server_rmi_port;
-    private String multicast_address;
-    private int multicast_port;
-    private int reward_timeout;
+    private final String address;
+    private final int port;
+    private final String server_rmi_name;
+    private final int server_rmi_port;
+    private final String multicast_address;
+    private final int multicast_port;
+    private final int reward_timeout;
 
     public ConfigWINSOME(String address, int port, String server_rmi_name, String multicast_address, int server_rmi_port, int multicast_port, int reward_timeout){
         this.port = port;
@@ -19,10 +22,7 @@ public class ConfigWINSOME {
         this.reward_timeout = reward_timeout;
     }
 
-    public ConfigWINSOME(){
-
-    }
-
+    //metodi get dei vari campi del file di config:
     public int getPort() {
         return port;
     }

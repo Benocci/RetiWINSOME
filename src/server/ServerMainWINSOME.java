@@ -22,6 +22,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW:
+ */
 public class ServerMainWINSOME {
     static SocialNetwork socialNetwork;
     public static final ConcurrentHashMap<String, String> loggedUsers = new ConcurrentHashMap<>();

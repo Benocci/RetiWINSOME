@@ -1,7 +1,5 @@
 package server;
 
-import server.Transaction;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +8,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: classe che rappresenta il portafoglio di un utente
+ */
 public class Wallet {
     private final String username;
     private final ConcurrentLinkedQueue<Transaction> transactions;
@@ -27,6 +29,9 @@ public class Wallet {
         return transactions;
     }
 
+    /*
+     * EFFECTS: return il valore totale del portafoglio
+     */
     public int getWalletAmount(){
         int to_return = 0;
         for (Transaction t: transactions) {
@@ -36,6 +41,10 @@ public class Wallet {
         return to_return;
     }
 
+    /*
+     * EFFECTS: return il valore totale del portafoglio in bitcoin
+     * THROWS: IOException se occorrono errori I/O
+     */
     public float getWalletinBitcoin(){
         float random_value = 0;
         try{
@@ -59,6 +68,11 @@ public class Wallet {
         return random_value*getWalletAmount();
     }
 
+    /*
+     * REQUIRES:
+     * MODIFIES: this.transactions
+     * EFFECTS: aggiunge una nuova transazione
+     */
     public Boolean addTransaction(int transaction_value){
         return transactions.add(new Transaction(transaction_value));
     }

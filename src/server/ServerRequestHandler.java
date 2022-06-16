@@ -1,21 +1,20 @@
 package server;
 
-import exception.PostNotExistException;
-import exception.SameUserException;
-import exception.UserNotExistException;
-import exception.VoteNotValidException;
+import exception.*;
 import shared.ConfigWINSOME;
 
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: classe runnable che viene usata dalla threadpool per elaborare le richieste del client e inviare la risposta
+ */
 public class ServerRequestHandler implements Runnable {
     ConfigWINSOME config;
     SocialNetwork social;
@@ -34,6 +33,10 @@ public class ServerRequestHandler implements Runnable {
     }
 
 
+    /*
+     * EFFECTS: chima requestHandler e invia la stringa di ritorno al client
+     * THROWS: IOException se occorrono errori nella write della risposta sul socketchannel
+     */
     @Override
     public void run() {
         System.out.println("Messaggio ricevuto dal client: " + channel + ": " + request);
@@ -54,28 +57,40 @@ public class ServerRequestHandler implements Runnable {
     }
 
 
+    /*
+     * REQUIRES: request != null ∧ channel != null ∧ social != null
+     * MODIFIES: this in caso di richieste di modifica
+     * EFFECTS: elabora la richiesta e ritorna una stringa di risposta in base al successo o meno dell'operazione
+     * THROWS:  UserNotExistException se un utente non è presente nel socialnewtok
+     *          PostNotExistException se un post non esiste
+     *          VoteNotValidException se il voto in una operazione di rate non è -1/+1
+     *          SameUserException se un utente prova a votare un suo post
+     *          NoAuthorizationException se non ci sono le autorizzazioni per effettuare un operazione
+     */
     private static String requestHandler(String request, String channel, SocialNetwork social){
+        //parsing della richiesta:
         ArrayList<String> line_parsed = new ArrayList<>();
         Collections.addAll(line_parsed, request.split(" "));
         String option = line_parsed.remove(0);
         String res = "";
 
-        if (request.contains("exit")) {
-            System.out.println("Connessione conclusa!");
+        if (request.contains("exit")) { //richiesta di exit ritorna exit
+            System.out.println("Client disconnesso!");
             return "exit";
         }
 
         switch (option) {
-            case "login": {
-                if (line_parsed.size() != 2) {
+            case "login": { // richiesta di login
+                if (line_parsed.size() != 2) { // controllo sul numero di argomenti
                     System.out.println("Errore!");
                     res = "numero argomenti";
                     break;
                 }
+
                 String username = line_parsed.get(0);
                 String password = line_parsed.get(1);
 
-                if (ServerMainWINSOME.loggedUsers.contains(username)) {
+                if (ServerMainWINSOME.loggedUsers.contains(username)) {//controllo se l'utente è già loggato
                     System.out.println("Utente già loggato");
                     res = "utente già loggato";
                     break;
@@ -86,8 +101,8 @@ public class ServerRequestHandler implements Runnable {
                 if (user == null) {
                     System.out.println("Utente non esiste");
                     res = "utente non esiste";
-                } else {
-                    if (user.getPassword().equals(password)) {
+                } else {                                        // se l'utente esiste
+                    if (user.getPassword().equals(password)) {  // e la sua password corrisponde loggo
                         ServerMainWINSOME.loggedUsers.put(channel, username);
                         System.out.println("Utente loggato!");
                         res = "ok";
@@ -292,11 +307,11 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     Post post = social.getPost(Integer.parseInt(line_parsed.get(0)));
                     if (username.equals(post.getAuthor())) {
-                        social.removePost(Integer.parseInt(line_parsed.get(0)));
+                        social.removePost(Integer.parseInt(line_parsed.get(0)), username);
                     } else {
                         System.out.println("Devi essere l'autore per eliminare un post!");
                     }
-                } catch (PostNotExistException e) {
+                } catch (PostNotExistException | NoAuthorizationException e) {
                     e.printStackTrace();
                 }
 
@@ -319,6 +334,9 @@ public class ServerRequestHandler implements Runnable {
                 } catch (SameUserException e) {
                     e.printStackTrace();
                     res = "voto ad un tuo post";
+                } catch (UserNotExistException e) {
+                    e.printStackTrace();
+                    res = "utente non esiste";
                 }
 
                 break;

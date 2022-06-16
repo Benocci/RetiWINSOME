@@ -7,26 +7,31 @@ import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW:
+ */
 public class RewardsCalculation implements Runnable{
     ConfigWINSOME config;
     SocialNetwork social;
 
-    private volatile boolean continueLoop = true;
+    private volatile Boolean continueLoop = true;
 
     public RewardsCalculation(ConfigWINSOME config, SocialNetwork social){
         this.config = config;
         this.social = social;
     }
 
+    /*
+     * REQUIRES:
+     * MODIFIES:
+     * EFFECTS:
+     * THROWS:
+     */
     @Override
     public void run() {
 
-        try (DatagramSocket datagramSocketServer = new DatagramSocket(null)) {
-            InetAddress inetAddress = InetAddress.getLocalHost();
-            InetSocketAddress socketAddress = new InetSocketAddress(inetAddress, config.getMulticast_port());
-            datagramSocketServer.setReuseAddress(true);
-            datagramSocketServer.bind(socketAddress);
-
+        try (DatagramSocket datagramSocketServer = new DatagramSocket(config.getMulticast_port()+1)) {
             DatagramPacket datagramPacket;
 
             ConcurrentHashMap<Integer, Post> postMap;
@@ -44,7 +49,7 @@ public class RewardsCalculation implements Runnable{
                     }
 
                     if(total_reward != 0){
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(Integer.BYTES);
+                        ByteBuffer byteBuffer = ByteBuffer.allocate(Double.BYTES);
                         byteBuffer.putDouble(total_reward);
 
                         InetAddress clientAddress = InetAddress.getByName(config.getMulticast_address());
@@ -68,7 +73,22 @@ public class RewardsCalculation implements Runnable{
 
     }
 
+    /*
+     * REQUIRES:
+     * MODIFIES:
+     * EFFECTS:
+     * THROWS:
+     */
+    public void stopLoop(){
+        this.continueLoop = false;
+    }
 
+    /*
+     * REQUIRES:
+     * MODIFIES:
+     * EFFECTS:
+     * THROWS:
+     */
     private double profitCalculation(Post post){
         return post.getVote();
     }

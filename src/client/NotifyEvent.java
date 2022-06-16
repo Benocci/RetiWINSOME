@@ -3,6 +3,10 @@ package client;
 import java.rmi.*;
 import java.rmi.server.*;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: implementa la notifica del cambiamento nei follower del client
+ */
 public class NotifyEvent extends RemoteObject implements NotifyEventInterface{
 
     @Override

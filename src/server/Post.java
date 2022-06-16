@@ -1,13 +1,16 @@
 package server;
 
 import exception.SameUserException;
-import server.Comment;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/*
+ *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
+ *  OVERVIEW: classe che rappresenta un post
+ */
 public class Post {
     private final int id;
     private final String author;
@@ -28,6 +31,8 @@ public class Post {
         this.rewinUsers = new ConcurrentLinkedQueue<>();
         this.comments = new ArrayList<>();
     }
+
+    //metodi get dei campi del post:
 
     public Date getDate() {
         return date;
@@ -68,6 +73,13 @@ public class Post {
         return comments;
     }
 
+
+    /*
+     * REQUIRES: username != null ∧ (value = -1 or value = 1) ∧ content != null
+     * MODIFIES: this
+     * EFFECTS: aggiungono al post un voto/commento/rewin
+     * THROWS: SameUserException se il richiedente è lo stesso utente autore del post
+     */
     public void addVote(String username, int value) throws SameUserException {
         if(author.equals(username)){
             throw new SameUserException();
@@ -76,6 +88,7 @@ public class Post {
         votes.putIfAbsent(username, value);
     }
 
+
     public void addComment(String username, String content) throws SameUserException{
         if(author.equals(username)){
             throw new SameUserException();
@@ -83,6 +96,7 @@ public class Post {
 
         comments.add(new Comment(username, content));
     }
+
 
     public void addRewin(String username) throws SameUserException {
         if(author.equals(username)){
