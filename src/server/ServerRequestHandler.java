@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -20,13 +21,15 @@ public class ServerRequestHandler implements Runnable {
     SocketChannel socketChannel;
     Selector selector;
     String request;
+    ServerCallback callback;
 
-    public ServerRequestHandler(SocialNetwork social, String channel, SocketChannel socketChannel, Selector selector, String request){
+    public ServerRequestHandler(SocialNetwork social, String channel, SocketChannel socketChannel, Selector selector, String request, ServerCallback callback){
         this.channel = channel;
         this.socketChannel = socketChannel;
         this.selector = selector;
         this.social = social;
         this.request = request;
+        this.callback = callback;
     }
 
 
@@ -38,7 +41,7 @@ public class ServerRequestHandler implements Runnable {
     public void run() {
         System.out.println("Messaggio ricevuto dal client: " + channel + ": " + request);
 
-        String res = requestHandler(request, channel, social);
+        String res = requestHandler(request, channel, social, callback);
 
         ByteBuffer to_send = ByteBuffer.allocate(Integer.BYTES + res.length());
         to_send.putInt(res.length());
@@ -64,7 +67,7 @@ public class ServerRequestHandler implements Runnable {
      *          SameUserException se un utente prova a votare un suo post
      *          NoAuthorizationException se non ci sono le autorizzazioni per effettuare un operazione
      */
-    private static String requestHandler(String request, String channel, SocialNetwork social){
+    private static String requestHandler(String request, String channel, SocialNetwork social, ServerCallback callback){
         //parsing della richiesta:
         ArrayList<String> line_parsed = new ArrayList<>();
         Collections.addAll(line_parsed, request.split(" "));
@@ -161,10 +164,15 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     social.followUser(username, line_parsed.get(0));
                     System.out.println(username + " segue " + line_parsed.get(0));
+                    callback.notifyClient(1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
                     e.printStackTrace();
                     res = "utente non esiste";
+                }
+                catch (RemoteException ex){
+                    ex.printStackTrace();
+                    res = "ERRORE NELLA CALLBACK";
                 }
 
                 break;
@@ -180,9 +188,14 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     social.unfollowUser(username, line_parsed.get(0));
                     System.out.println(username + " non segue più " + line_parsed.get(0));
+                    callback.notifyClient(-1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
                     e.printStackTrace();
+                }
+                catch (RemoteException ex){
+                    ex.printStackTrace();
+                    res = "ERRORE NELLA CALLBACK";
                 }
 
                 break;
@@ -278,9 +291,13 @@ public class ServerRequestHandler implements Runnable {
                         }
 
                         try {
-                            Post post = social.getPost(Integer.parseInt(line_parsed.get(0)));
-                            System.out.println(" ID post: " + post.getId() + ", autore: " + post.getAuthor() + ", titolo: " + post.getTitle());
-                            System.out.println("altre info del post");
+                            Post post = social.getPost(Integer.parseInt(line_parsed.get(1)));
+                            System.out.println("-ID post: " + post.getId() + ", autore: " + post.getAuthor() + ", titolo: " + post.getTitle());
+                            System.out.println(" Contenuto: " + post.getContent());
+                            System.out.println(" Voto: " + post.getVote() + ", numero di voti: " + post.getVotes().size());
+                            for (Comment c: post.getComments()) {
+                                System.out.println(" Commento di " + c.getAuthor() + " dice: " + c.getContent());
+                            }
                             res = "ok";
                         } catch (PostNotExistException e) {
                             e.printStackTrace();
@@ -372,14 +389,16 @@ public class ServerRequestHandler implements Runnable {
                 }
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
+                int id_post = Integer.parseInt(line_parsed.remove(0));
+                request = request.substring(request.indexOf("\"")+1);
+                String comment_content = request.substring(0, request.indexOf("\""));
                 try {
-                    social.commentPost(Integer.parseInt(line_parsed.get(0)), username, line_parsed.get(1));
+                    social.commentPost(id_post, username, comment_content);
                     res = "ok";
                 } catch (PostNotExistException e) {
                     e.printStackTrace();
                     res = "post non esiste";
-                }
-                catch (UserNotExistException e){
+                } catch (UserNotExistException e){
                     e.printStackTrace();
                     res = "utente non esiste";
                 } catch (SameUserException e) {

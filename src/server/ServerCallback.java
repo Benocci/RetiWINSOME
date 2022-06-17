@@ -39,6 +39,6 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
     public synchronized void notifyClient(int value, String username, String follower) throws RemoteException {
         System.out.println("Notifica " + value + " al client sull'utente " + username);
 
-        clients.get(username).notifyEvent(value, follower);
+        clients.get(follower).notifyEvent(value, username);
     }
 }

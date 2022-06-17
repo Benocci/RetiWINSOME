@@ -81,7 +81,7 @@ public class ServerMainWINSOME {
         //inizializzazione del sistema di callback con rmi ai client
         ServerCallback serverCallback = new ServerCallback();
         try{
-            ServerCallbackInterface callbackStub = (ServerCallbackInterface) UnicastRemoteObject.exportObject(serverCallback, 0);
+            ServerCallbackInterface callbackStub = (ServerCallbackInterface) UnicastRemoteObject.exportObject(serverCallback, 39000);
             Registry registry = LocateRegistry.createRegistry(config.getRmi_callback_port());
             registry.rebind(config.getRmi_callback_name(), callbackStub);
         }
@@ -130,7 +130,7 @@ public class ServerMainWINSOME {
                         ByteBuffer request;
                         if(selectionKey.attachment() == null){
                             ByteBuffer request_lenght = ByteBuffer.allocate(Integer.BYTES);
-                            var nread = socketChannel.read(request_lenght);
+                            int nread = socketChannel.read(request_lenght);
                             assert (nread == Integer.BYTES);
                             request_lenght.flip();
                             int msgLen = request_lenght.getInt();
@@ -163,7 +163,7 @@ public class ServerMainWINSOME {
                     else if(selectionKey.isWritable()){
                         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
                         String request = (String) selectionKey.attachment();
-                        threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request));
+                        threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request, serverCallback));
 
                         socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }

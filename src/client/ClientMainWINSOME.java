@@ -21,6 +21,7 @@ import java.util.*;
  *  OVERVIEW: classe main del client in cui avviene la sua inizializzazzione e in cui è presente il ciclo principale della CLI con invio dei messaggi al server
  */
 public class ClientMainWINSOME {
+    private static String username;
     public static ArrayList<String> follower = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
@@ -189,7 +190,8 @@ public class ClientMainWINSOME {
                         server = (ServerCallbackInterface) registry.lookup(config.getRmi_callback_name());
                         callbackObj = new NotifyEvent();
                         stub = (NotifyEventInterface) UnicastRemoteObject.exportObject(callbackObj, 0);
-                        server.registerForCallback(line_parsed.get(0),stub);
+                        username = line_parsed.get(0);
+                        server.registerForCallback(username,stub);
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -198,11 +200,13 @@ public class ClientMainWINSOME {
 
                 if(option.equals("logout") && line_write.equals("ok") && server != null){
                     try{
-                        server.unregisterForCallback(line_parsed.get(0));
+                        server.unregisterForCallback(username);
                     }
                     catch (RemoteException e){
                         e.printStackTrace();
                     }
+                    username = null;
+
                 }
 
             }
