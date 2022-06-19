@@ -3,6 +3,7 @@ package server;
 import exception.*;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -78,6 +79,39 @@ public class SocialNetwork {
         }
 
         return to_return;
+    }
+
+    /*
+     * REQUIRES: username != null
+     * EFFECTS: ritorna l'intera lista di utenti mappata
+     * THROWS:
+     */
+    public ConcurrentHashMap<String, User> getUsers() {
+        return users;
+    }
+
+    public ConcurrentHashMap<String, ArrayList<String>> getFollowersMap() {
+        return followersMap;
+    }
+
+    public ConcurrentHashMap<String, ArrayList<String>> getFollowingMap() {
+        return followingMap;
+    }
+
+    public void setUsers(ConcurrentHashMap<String, User> users) {
+        this.users = users;
+    }
+
+    public void setPostMap(ConcurrentHashMap<Integer, Post> postMap) {
+        this.postMap = postMap;
+    }
+
+    public void setFollowersMap(ConcurrentHashMap<String, ArrayList<String>> followersMap) {
+        this.followersMap = followersMap;
+    }
+
+    public void setFollowingMap(ConcurrentHashMap<String, ArrayList<String>> followingMap) {
+        this.followingMap = followingMap;
     }
 
     /*

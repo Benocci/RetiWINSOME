@@ -61,6 +61,11 @@ public class ServerMainWINSOME {
         //inizializzo il socialnetwork
         socialNetwork = new SocialNetwork();
 
+        //inizializzo e avvio il sistema di backup
+        BackupManager backupManager = new BackupManager(socialNetwork);
+        Thread backupThread = new Thread(backupManager);
+        backupThread.start();
+
         //inizializzo e avvio il sistema di rewards
         RewardsCalculation rewardsCalculation = new RewardsCalculation(config, socialNetwork);
         Thread rewardsThread = new Thread(rewardsCalculation);
@@ -186,6 +191,7 @@ public class ServerMainWINSOME {
         }
 
         rewardsCalculation.stopLoop();
+        backupManager.stopBackup();
 
         try{
             UnicastRemoteObject.unexportObject(registrationRMI, false);

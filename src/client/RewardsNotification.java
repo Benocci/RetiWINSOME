@@ -40,7 +40,7 @@ public class RewardsNotification implements Runnable{
             multicastSocket = new MulticastSocket(port);
             InetSocketAddress group = new InetSocketAddress(inetAddress, port);
             NetworkInterface networkInterface = NetworkInterface.getByName("wlan1");
-            multicastSocket.joinGroup(group, networkInterface);
+            multicastSocket.joinGroup(inetAddress);
 
             while(true){
                 try{
