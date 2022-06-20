@@ -39,8 +39,8 @@ public class RewardsNotification implements Runnable{
             //inizializzazzione del multicast UDP
             multicastSocket = new MulticastSocket(port);
             InetSocketAddress group = new InetSocketAddress(inetAddress, port);
-            NetworkInterface networkInterface = NetworkInterface.getByName("wlan1");
-            multicastSocket.joinGroup(inetAddress);
+            NetworkInterface networkInterface = NetworkInterface.getByInetAddress(inetAddress);
+            multicastSocket.joinGroup(group,networkInterface);
 
             while(true){
                 try{

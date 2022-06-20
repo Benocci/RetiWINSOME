@@ -5,14 +5,14 @@ import client.NotifyEventInterface;
 
 import java.rmi.*;
 import java.rmi.server.*;
-import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
  *  OVERVIEW:
  */
 public class ServerCallback extends RemoteServer implements ServerCallbackInterface{
-    private HashMap<String, NotifyEventInterface> clients= new HashMap();
+    private ConcurrentHashMap<String, NotifyEventInterface> clients= new ConcurrentHashMap<>();
 
     /*
      * REQUIRES:
@@ -36,9 +36,16 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
         clients.remove(username);
     }
 
+    /*
+     * REQUIRES:
+     * MODIFIES:
+     * EFFECTS:
+     * THROWS:
+     */
     public synchronized void notifyClient(int value, String username, String follower) throws RemoteException {
         System.out.println("Notifica " + value + " al client sull'utente " + username);
-
-        clients.get(follower).notifyEvent(value, username);
+        if(clients.containsKey(follower)){
+            clients.get(follower).notifyEvent(value, username);
+        }
     }
 }
