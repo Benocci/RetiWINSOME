@@ -45,15 +45,24 @@ public class RewardsNotification implements Runnable{
             while(true){
                 try{
                     //inizializzazzione dei buffer e del datagramma
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(Double.BYTES);
-                    DatagramPacket datagramPacket = new DatagramPacket(byteBuffer.array(), byteBuffer.limit());
+                    ByteBuffer lenghtBuffer = ByteBuffer.allocate(Integer.BYTES);
+                    DatagramPacket datagramPacket = new DatagramPacket(lenghtBuffer.array(), lenghtBuffer.limit());
 
-                    //ricezione
+                    //ricezione lunghezza stringa
+                    multicastSocket.receive(datagramPacket);
+                    int lenght = ByteBuffer.wrap(datagramPacket.getData()).getInt();
+
+                    //ricezione stringa
+                    ByteBuffer to_receiveBuffer = ByteBuffer.allocate(lenght);
+                    datagramPacket = new DatagramPacket(to_receiveBuffer.array(), to_receiveBuffer.limit());
                     multicastSocket.receive(datagramPacket);
 
                     String received = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
 
-                    System.out.println("Ho ricevuto: " + received);
+                    System.out.println(received);
+
+                    float rewards = Float.parseFloat(received.substring(received.indexOf(":")));
+                    System.out.println("CIOE solo " + rewards);
 
                     if(clientClose){ // client chiuso concludo il ciclo chiudento la ricezione
                         multicastSocket.close();

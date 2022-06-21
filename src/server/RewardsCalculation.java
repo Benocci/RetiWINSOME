@@ -51,21 +51,24 @@ public class RewardsCalculation implements Runnable{
                     for(Post p: postMap.values()) {
                         reward = profitCalculation(p);
                         total_reward += reward;
-                        System.out.println("Reward = " + reward);
                     }
 
                     if(total_reward != 0){
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(Double.BYTES);
-                        byteBuffer.putDouble(total_reward);
-                        System.out.println("Ho inviato " + total_reward);
+                        String to_send = "Reward totale:" + total_reward;
 
                         InetAddress clientAddress = InetAddress.getByName(config.getMulticast_address());
-                        datagramPacket = new DatagramPacket(byteBuffer.array(), byteBuffer.limit(), clientAddress ,config.getMulticast_port());
+                        //invio la lunghezza della stringa contenente il reward
+                        ByteBuffer lenghtBuffer = ByteBuffer.allocate(Integer.BYTES);
+                        lenghtBuffer.putInt(to_send.getBytes().length);
+                        datagramPacket = new DatagramPacket(lenghtBuffer.array(), lenghtBuffer.limit(), clientAddress ,config.getMulticast_port());
+                        datagramSocketServer.send(datagramPacket);
+
+                        //invio la stringa contenente il reward
+                        ByteBuffer to_sendBuffer = ByteBuffer.allocate(to_send.getBytes().length);
+                        to_sendBuffer.put(to_send.getBytes());
+                        datagramPacket = new DatagramPacket(to_sendBuffer.array(), to_sendBuffer.limit(), clientAddress ,config.getMulticast_port());
                         datagramSocketServer.send(datagramPacket);
                     }
-                }
-                else{
-                    System.out.println("NO post");
                 }
 
             }
