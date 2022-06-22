@@ -104,6 +104,7 @@ public class SocialNetwork {
 
     public void setPostMap(ConcurrentHashMap<Integer, Post> postMap) {
         this.postMap = postMap;
+        this.post_id.addAndGet(postMap.keySet().size());
     }
 
     public void setFollowersMap(ConcurrentHashMap<String, ArrayList<String>> followersMap) {

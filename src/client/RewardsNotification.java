@@ -12,7 +12,8 @@ public class RewardsNotification implements Runnable{
     private MulticastSocket multicastSocket;
     private InetAddress inetAddress;
     private int port;
-    private Boolean clientClose = false;
+    private Boolean clientClose = true;
+    private float old_reward = 0;
 
     /*
      * REQUIRES: address != null ∧ port > 0
@@ -42,7 +43,7 @@ public class RewardsNotification implements Runnable{
             NetworkInterface networkInterface = NetworkInterface.getByInetAddress(inetAddress);
             multicastSocket.joinGroup(group,networkInterface);
 
-            while(true){
+            while(clientClose){
                 try{
                     //inizializzazzione dei buffer e del datagramma
                     ByteBuffer lenghtBuffer = ByteBuffer.allocate(Integer.BYTES);
@@ -57,17 +58,17 @@ public class RewardsNotification implements Runnable{
                     datagramPacket = new DatagramPacket(to_receiveBuffer.array(), to_receiveBuffer.limit());
                     multicastSocket.receive(datagramPacket);
 
+
                     String received = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
+                    float new_rewards = Float.parseFloat(received.substring(received.indexOf(":")+1));
 
-                    System.out.println(received);
-
-                    float rewards = Float.parseFloat(received.substring(received.indexOf(":")));
-                    System.out.println("CIOE solo " + rewards);
-
-                    if(clientClose){ // client chiuso concludo il ciclo chiudento la ricezione
-                        multicastSocket.close();
-                        return;
+                    if(new_rewards != old_reward) {
+                        System.out.println(received);
+                        System.out.print("> ");
+                        old_reward = new_rewards;
                     }
+
+
                 }
                 catch (IOException ignore) {}
             }
@@ -75,6 +76,7 @@ public class RewardsNotification implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("Thread terminato!");
     }
 
     /*
@@ -82,6 +84,7 @@ public class RewardsNotification implements Runnable{
      * EFFECTS: imposta l'uscita dal ciclo del thread
      */
     public void setClientClose(){
-        clientClose = true;
+        clientClose = false;
+        multicastSocket.close();
     }
 }

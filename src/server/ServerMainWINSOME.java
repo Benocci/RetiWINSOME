@@ -29,8 +29,6 @@ public class ServerMainWINSOME {
     public static final ConcurrentHashMap<String, String> loggedUsers = new ConcurrentHashMap<>();
 
     public static void main(String[] args) {
-
-
         File file;
         if(args.length < 1){
             file = new File("src\\configFile\\configServer.json");
@@ -61,8 +59,11 @@ public class ServerMainWINSOME {
         //inizializzo il socialnetwork
         socialNetwork = new SocialNetwork();
 
-        //inizializzo e avvio il sistema di backup
+        //carico il backup precedente:
         BackupManager backupManager = new BackupManager(socialNetwork);
+        backupManager.loadBackup();
+
+        //inizializzo e avvio il sistema di backup:
         Thread backupThread = new Thread(backupManager);
         backupThread.start();
 
@@ -139,7 +140,6 @@ public class ServerMainWINSOME {
                             assert (nread == Integer.BYTES);
                             request_lenght.flip();
                             int msgLen = request_lenght.getInt();
-                            System.out.println("Lunghezza messaggio: " + msgLen);
 
                             request = ByteBuffer.allocate(msgLen);
                             selectionKey.attach(request);
@@ -154,10 +154,16 @@ public class ServerMainWINSOME {
 
                         request.flip();
                         String read = new String(request.array());
-                        System.out.println("Arrivato: " + read + " lungo: " + read.length());
 
                         request.clear();
                         selectionKey.attach(null);
+
+                        if(read.contains("exit")){
+                            System.out.println("Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
+                            selectionKey.cancel();
+                            socketChannel.close();
+                            continue;
+                        }
 
                         try {
                             socketChannel.register(selector, SelectionKey.OP_WRITE, read);

@@ -52,7 +52,7 @@ public class BackupManager implements Runnable{
         this.stopBackup = true;
     }
 
-    private void loadBackup(){
+    public void loadBackup(){
         String usersMap = readJson("src\\backupServerState\\usersBackup.json");
         String followersMap = readJson("src\\backupServerState\\followerBackup.json");
         String followingMap = readJson("src\\backupServerState\\followedBackup.json");
@@ -68,7 +68,7 @@ public class BackupManager implements Runnable{
             social.setFollowersMap(gson.fromJson(followersMap, type));
         }
 
-        if(followingMap != null ||followingMap .equals("")){
+        if(followingMap != null ||followingMap.equals("")){
             Type type = new TypeToken<ConcurrentHashMap<String, ArrayList<String>>>() {}.getType();
             social.setFollowingMap(gson.fromJson(followingMap, type));
         }

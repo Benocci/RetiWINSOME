@@ -158,6 +158,10 @@ public class ClientMainWINSOME {
                 socketChannel.write(request);
                 request.clear();
 
+                if(line_read.contains("exit")){
+                    break;
+                }
+
                 //inizializzo i bytebuffer per la risposta dal server:
                 ByteBuffer response_lenght, response;
                 response_lenght = ByteBuffer.allocate(Integer.BYTES);
@@ -175,10 +179,6 @@ public class ClientMainWINSOME {
                 //controllo del codice di risposta:
                 if(line_write.equals("ok")){
                     System.out.println("Operazione avvenuta con successo!");
-                }
-                else if(line_write.equals("exit")){
-                    socketChannel.close();
-                    break;
                 }
                 else{
                     System.out.println("Operazione non avvenuta: " + line_write);
@@ -216,5 +216,18 @@ public class ClientMainWINSOME {
         }
         System.out.println("Terminazione del client in corso...");
         rewardsNotification.setClientClose();
+        try{
+            if(username != null && server != null){
+                server.unregisterForCallback(username);
+            }
+
+            if(callbackObj != null){
+                UnicastRemoteObject.unexportObject(callbackObj, false);
+            }
+        }catch (RemoteException ignore){
+            ;
+        }
+        socketChannel.close();
+        System.out.println("Client terminato correttamente.");
     }
 }

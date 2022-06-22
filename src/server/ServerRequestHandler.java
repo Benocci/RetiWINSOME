@@ -74,11 +74,6 @@ public class ServerRequestHandler implements Runnable {
         String option = line_parsed.remove(0);
         String res = "";
 
-        if (request.contains("exit")) { //richiesta di exit ritorna exit
-            System.out.println("Client disconnesso!");
-            return "exit";
-        }
-
         switch (option) {
             case "login": { // richiesta di login
                 if (line_parsed.size() != 2) { // controllo sul numero di argomenti
@@ -104,10 +99,8 @@ public class ServerRequestHandler implements Runnable {
                 } else {                                        // se l'utente esiste
                     if (user.getPassword().equals(password)) {  // e la sua password corrisponde loggo
                         ServerMainWINSOME.loggedUsers.put(channel, username);
-                        System.out.println("Utente loggato!");
                         res = "ok";
                     } else {
-                        System.out.println("Password errata!");
                         res = "password errata";
                     }
                 }
@@ -116,7 +109,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "logout": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -127,7 +119,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "list": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }

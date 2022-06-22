@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RewardsCalculation implements Runnable{
     ConfigServerWINSOME config;
     SocialNetwork social;
-    int rewards_period = 1000;
+    int rewards_period = 10000;
 
     private Boolean continueLoop = true;
 
