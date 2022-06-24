@@ -2,7 +2,6 @@ package server;
 
 import exception.SameUserException;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,9 +16,10 @@ public class Post {
     private final String title;
     private final String content;
     private final Date date;
-    private final ConcurrentHashMap<String, Integer> votes;
+    private final ConcurrentHashMap<String, Vote> votes;
     private final ConcurrentLinkedQueue<String> rewinUsers;
-    private final ArrayList<Comment> comments;
+    private final ConcurrentLinkedQueue<Comment> comments;
+    private int num_iteration;
 
     public Post(int id, String author, String title, String content){
         this.id = id;
@@ -29,7 +29,8 @@ public class Post {
         this.date = new Date();
         this.votes = new ConcurrentHashMap<>();
         this.rewinUsers = new ConcurrentLinkedQueue<>();
-        this.comments = new ArrayList<>();
+        this.comments = new ConcurrentLinkedQueue<>();
+        this.num_iteration = 1;
     }
 
     //metodi get dei campi del post:
@@ -53,15 +54,32 @@ public class Post {
     public int getVote() {
         int to_return = 0;
 
-        for (Integer v: votes.values()) {
-            to_return += v;
+        for (Vote v: votes.values()) {
+            to_return += v.getRate();
         }
         return to_return;
     }
 
+    public int newValutation(){
+        return num_iteration++;
+    }
 
+    public boolean hadChange(Date date){
+        for (Comment c: comments) {
+            if(c.getDate().after(date)){
+                return true;
+            }
+        }
 
-    public ConcurrentHashMap<String, Integer> getVotes() {
+        for (Vote v: votes.values()) {
+            if(v.getDate().after(date)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public ConcurrentHashMap<String, Vote> getVotes() {
         return votes;
     }
 
@@ -69,7 +87,7 @@ public class Post {
         return title;
     }
 
-    public ArrayList<Comment> getComments() {
+    public ConcurrentLinkedQueue<Comment> getComments() {
         return comments;
     }
 
@@ -85,7 +103,7 @@ public class Post {
             throw new SameUserException();
         }
 
-        votes.putIfAbsent(username, value);
+        votes.putIfAbsent(username, new Vote(username, new Date(), value));
     }
 
 

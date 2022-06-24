@@ -3,6 +3,8 @@ package server;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
@@ -13,12 +15,14 @@ public class RewardsCalculation implements Runnable{
     ConfigServerWINSOME config;
     SocialNetwork social;
     int rewards_period = 10000;
+    Date last_calculation;
 
     private Boolean continueLoop = true;
 
     public RewardsCalculation(ConfigServerWINSOME config, SocialNetwork social){
         this.config = config;
         this.social = social;
+        this.last_calculation = new Date();
     }
 
     /*
@@ -36,8 +40,7 @@ public class RewardsCalculation implements Runnable{
 
             while(continueLoop){
                 postMap = social.getPostMap();
-                double reward;
-                double total_reward = 0;
+                double reward, total_reward = 0;
 
                 try{
                     Thread.sleep(rewards_period);
@@ -49,12 +52,15 @@ public class RewardsCalculation implements Runnable{
                 if(postMap.size() != 0){
 
                     for(Post p: postMap.values()) {
-                        reward = profitCalculation(p);
-                        total_reward += reward;
+                        if(p.hadChange(last_calculation)){
+                            reward = profitCalculation(p);
+                            total_reward += reward;
+                        }
                     }
 
                     if(total_reward != 0){
                         String to_send = "Reward totale:" + total_reward;
+                        System.out.println("INVIO: " + to_send);
 
                         InetAddress clientAddress = InetAddress.getByName(config.getMulticast_address());
                         //invio la lunghezza della stringa contenente il reward
@@ -94,7 +100,61 @@ public class RewardsCalculation implements Runnable{
      * EFFECTS: calcola il profitto del singolo post passato come argomento
      */
     private double profitCalculation(Post post){
-        return post.getVote();
+        double profit = 0;
+        double like_valutation = 0, comment_valutation = 0;
+
+        int n_iter = post.newValutation();
+        Date this_calculation = last_calculation;
+        last_calculation = new Date();
+
+        //calcolo la valutazione dei like:
+        for (Vote v: post.getVotes().values()) {
+            if(v.getDate().after(this_calculation)){
+                like_valutation += v.getRate();
+            }
+        }
+        if(like_valutation <= 0){
+            like_valutation = 1;
+        }
+        else{
+            like_valutation++;
+        }
+
+        //calcolo la valutazione dei commenti:
+        HashMap<String, Integer> username_commenting_map = new HashMap<>();
+        for(Comment c: post.getComments()){
+            if (c.getDate().after(this_calculation)) {
+                if(username_commenting_map.containsKey(c.getAuthor())){
+                    int val = username_commenting_map.get(c.getAuthor());
+                    val++;
+                    username_commenting_map.replace(c.getAuthor(), val);
+                }
+                else{
+                    username_commenting_map.put(c.getAuthor(), 1);
+                }
+
+            }
+
+        }
+
+        int total_people_comment = 0;
+        for (String username: username_commenting_map.keySet()) {
+            total_people_comment = username_commenting_map.get(username);
+            comment_valutation += 2/(1+Math.pow(Math.E, -(total_people_comment-1)));
+        }
+        comment_valutation++;
+
+        /*
+        System.out.println("Campi della funzione del profitto:");
+        System.out.println("-like tot -> " + like_valutation + " in log: " + Math.log(like_valutation));
+        System.out.println("-comments tot -> " + comment_valutation + " in log: " + Math.log(comment_valutation));
+        System.out.println("-num interazioni -> " + n_iter);
+        */
+
+        profit = (Math.log(like_valutation)+Math.log(comment_valutation))/n_iter;
+        //System.out.println("Profitto per il post num " + post.getId() + " di " + post.getAuthor() + ": " + profit);
+
+        return profit;
     }
 
 }

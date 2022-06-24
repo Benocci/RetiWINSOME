@@ -177,12 +177,7 @@ public class ClientMainWINSOME {
                 String line_write = new String(response.array());
 
                 //controllo del codice di risposta:
-                if(line_write.equals("ok")){
-                    System.out.println("Operazione avvenuta con successo!");
-                }
-                else{
-                    System.out.println("Operazione non avvenuta: " + line_write);
-                }
+                System.out.println("< " + line_write);
 
                 if(option.equals("login") && line_write.equals("ok")){
                     try {
@@ -228,6 +223,13 @@ public class ClientMainWINSOME {
             ;
         }
         socketChannel.close();
-        System.out.println("Client terminato correttamente.");
+
+        if(rewardsNotificationThread.isInterrupted()){
+            System.out.println("Client terminato correttamente.");
+        }
+        else{
+            System.out.println("Interrompo il thread di notifica!");
+            rewardsNotificationThread.interrupt();
+        }
     }
 }

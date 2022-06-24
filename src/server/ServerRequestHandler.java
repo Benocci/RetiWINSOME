@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
@@ -125,22 +126,56 @@ public class ServerRequestHandler implements Runnable {
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 ArrayList<String> list = null;
+                StringBuilder to_return = new StringBuilder();
+
                 switch (line_parsed.get(0)) {
                     case "followers": {
                         list = social.getFollowers(username);
+                        if(list == null){
+                            to_return.append("Non segui nessuno.");
+                        }
+                        else{
+                            to_return.append("Lista seguiti: ");
+                        }
+
                         break;
                     }
                     case "following": {
                         list = social.getFollowing(username);
+                        if(list == null){
+                            to_return.append("Nessuno ti segue.");
+                        }
+                        else{
+                            to_return.append("Lista seguaci: ");
+                        }
                         break;
                     }
                     case "users": {
                         list = social.listUsers(social.getUser(username));
+                        if(list == null){
+                            to_return.append("Nessun utente con tag comuni ai tuoi.");
+                        }
+                        else{
+                            to_return.append("Lista utenti con tag comuni: ");
+                        }
                         break;
                     }
                 }
-                System.out.println(list);
-                res = "ok";
+
+                if(list != null) {
+                    int size = list.size();
+                    for (String s: list){
+                        if(size > 1){
+                            to_return.append(s).append(", ");
+                        }
+                        else{
+                            to_return.append(s).append(".");
+                        }
+
+                        size--;
+                    }
+                    res = to_return.toString();
+                }
 
                 break;
             }
@@ -158,7 +193,6 @@ public class ServerRequestHandler implements Runnable {
                     callback.notifyClient(1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
-                    e.printStackTrace();
                     res = "utente non esiste";
                 }
                 catch (RemoteException ex){
@@ -182,7 +216,6 @@ public class ServerRequestHandler implements Runnable {
                     callback.notifyClient(-1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
-                    e.printStackTrace();
                 }
                 catch (RemoteException ex){
                     ex.printStackTrace();
@@ -203,10 +236,30 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     postView = social.viewBlog(username);
                     System.out.println(username + " post view:");
-                    for (Post p : postView) {
-                        System.out.println(" ID post: " + p.getId() + ", autore: " + p.getAuthor() + ", titolo: " + p.getTitle());
+                    StringBuilder to_return = new StringBuilder();
+                    to_return.append("Lista dei post di " + username +  ".\n");
+                    for (Post post : postView) {
+                        to_return.append(" * Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
+                        to_return.append(" * Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
+                        to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
+                        //stampo i voti:
+                        for (Vote v: post.getVotes().values()) {
+                            if(v.getRate() == 1){
+                                to_return.append("   * Voto positivo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                            }
+                            else{
+                                to_return.append("   * Voto negativo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                            }
+                        }
+                        to_return.append(" * Numero commenti: " + post.getComments().size() + ":\n");
+                        //stampo i commenti:
+                        for (Comment c: post.getComments()) {
+                            to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
+                            to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                        }
+
                     }
-                    res = "ok";
+                    res = to_return.toString();
                 } catch (UserNotExistException e) {
                     e.printStackTrace();
                     res = "utente non esiste";
@@ -256,17 +309,36 @@ public class ServerRequestHandler implements Runnable {
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 switch (line_parsed.get(0)) {
                     case "feed": {
-
                         ArrayList<String> followerList = social.getFollowers(username);
+                        StringBuilder to_return = new StringBuilder();
+                        to_return.append("Lista dei post degli utenti seguiti:\n");
                         try {
                             for (String author : followerList) {
                                 ArrayList<Post> authorPostView = social.viewBlog(author);
-                                for (Post p : authorPostView) {
-                                    System.out.println(" ID post: " + p.getId() + ", autore: " + p.getAuthor() + ", titolo: " + p.getTitle());
+
+
+                                for (Post post : authorPostView) {
+                                    to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
+                                    to_return.append(" * Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
+                                    to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
+                                    for (Vote v: post.getVotes().values()) {
+                                        if(v.getRate() == 1){
+                                            to_return.append("   * Voto positivo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                                        }
+                                        else{
+                                            to_return.append("   * Voto negativo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                                        }
+                                    }
+                                    to_return.append(" * Numero commenti: " + post.getComments().size() + ":\n");
+                                    for (Comment c: post.getComments()) {
+                                        to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
+                                        to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                                    }
                                 }
 
                             }
-                            res = "ok";
+
+                            res = to_return.toString();
                         } catch (UserNotExistException e) {
                             e.printStackTrace();
                             res = "utente non esiste";
@@ -283,16 +355,28 @@ public class ServerRequestHandler implements Runnable {
 
                         try {
                             Post post = social.getPost(Integer.parseInt(line_parsed.get(1)));
-                            System.out.println("-ID post: " + post.getId() + ", autore: " + post.getAuthor() + ", titolo: " + post.getTitle());
-                            System.out.println(" Contenuto: " + post.getContent());
-                            System.out.println(" Voto: " + post.getVote() + ", numero di voti: " + post.getVotes().size());
-                            for (Comment c: post.getComments()) {
-                                System.out.println(" Commento di " + c.getAuthor() + " dice: " + c.getContent());
+
+                            StringBuilder to_return = new StringBuilder();
+                            to_return.append("* Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
+                            to_return.append("* Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
+                            to_return.append("* Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
+                            for (Vote v: post.getVotes().values()) {
+                                if(v.getRate() == 1){
+                                    to_return.append("  * Voto positivo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                                }
+                                else{
+                                    to_return.append("  * Voto negativo di " + v.getAuthor() + " in data " + post.getDate().toString() + " .\n");
+                                }
                             }
-                            res = "ok";
+                            to_return.append("* Numero commenti: " + post.getComments().size() + ":\n");
+                            for (Comment c: post.getComments()) {
+                                to_return.append("  * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
+                                to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                            }
+
+                            res = to_return.toString();
                         } catch (PostNotExistException e) {
-                            e.printStackTrace();
-                            res = "utente non esiste";
+                            res = "post non esiste";
                         }
 
                         break;
@@ -314,10 +398,12 @@ public class ServerRequestHandler implements Runnable {
                     if (username.equals(post.getAuthor())) {
                         social.removePost(Integer.parseInt(line_parsed.get(0)), username);
                     } else {
-                        System.out.println("Devi essere l'autore per eliminare un post!");
+                        res = "Devi essere l'autore per eliminare un post!";
                     }
-                } catch (PostNotExistException | NoAuthorizationException e) {
-                    e.printStackTrace();
+                } catch (PostNotExistException ex) {
+                    res = "post non esiste";
+                }catch(NoAuthorizationException e) {
+                    res = "non hai l'autorizzazione";
                 }
 
                 break;
@@ -334,13 +420,10 @@ public class ServerRequestHandler implements Runnable {
                     social.rewinPost(Integer.parseInt(line_parsed.get(0)), username);
                     res = "ok";
                 } catch (PostNotExistException e) {
-                    e.printStackTrace();
                     res = "post non esiste";
                 } catch (SameUserException e) {
-                    e.printStackTrace();
                     res = "voto ad un tuo post";
                 } catch (UserNotExistException e) {
-                    e.printStackTrace();
                     res = "utente non esiste";
                 }
 
@@ -358,16 +441,12 @@ public class ServerRequestHandler implements Runnable {
                     social.ratePost(Integer.parseInt(line_parsed.get(0)), username, Integer.parseInt(line_parsed.get(1)));
                     res = "ok";
                 } catch (UserNotExistException e){
-                    e.printStackTrace();
                     res = "utente non esiste";
                 } catch (SameUserException e) {
-                    e.printStackTrace();
                     res = "voto ad un tuo post";
                 } catch (VoteNotValidException e){
-                    e.printStackTrace();
                     res = "voto non valido";
                 }catch(PostNotExistException e) {
-                    e.printStackTrace();
                     res = "post non esiste";
                 }
                 break;
@@ -387,13 +466,10 @@ public class ServerRequestHandler implements Runnable {
                     social.commentPost(id_post, username, comment_content);
                     res = "ok";
                 } catch (PostNotExistException e) {
-                    e.printStackTrace();
                     res = "post non esiste";
                 } catch (UserNotExistException e){
-                    e.printStackTrace();
                     res = "utente non esiste";
                 } catch (SameUserException e) {
-                    e.printStackTrace();
                     res = "voto ad un tuo post";
                 }
                 break;
@@ -411,7 +487,6 @@ public class ServerRequestHandler implements Runnable {
                     wallet = social.getWallet(username);
                     res = "ok";
                 } catch (UserNotExistException e) {
-                    e.printStackTrace();
                     res = "utente non esiste";
                     break;
                 }

@@ -99,20 +99,28 @@ public class SocialNetwork {
     }
 
     public void setUsers(ConcurrentHashMap<String, User> users) {
-        this.users = users;
+        if(users != null){
+            this.users = users;
+        }
     }
 
     public void setPostMap(ConcurrentHashMap<Integer, Post> postMap) {
-        this.postMap = postMap;
-        this.post_id.addAndGet(postMap.keySet().size());
+        if(postMap != null){
+            this.postMap = postMap;
+            this.post_id.addAndGet(postMap.keySet().size());
+        }
     }
 
     public void setFollowersMap(ConcurrentHashMap<String, ArrayList<String>> followersMap) {
-        this.followersMap = followersMap;
+        if(followersMap != null){
+            this.followersMap = followersMap;
+        }
     }
 
     public void setFollowingMap(ConcurrentHashMap<String, ArrayList<String>> followingMap) {
-        this.followingMap = followingMap;
+        if(followingMap != null){
+            this.followingMap = followingMap;
+        }
     }
 
     /*
