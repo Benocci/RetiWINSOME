@@ -1,10 +1,13 @@
 package server;
 
+import exception.UserNotExistException;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
@@ -84,6 +87,9 @@ public class RewardsCalculation implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
+        catch (UserNotExistException ex){
+            System.out.println("Errore nel calcolo del rewars, l'utente non esiste!");
+        }
 
     }
 
@@ -99,7 +105,7 @@ public class RewardsCalculation implements Runnable{
      * REQUIRES: post != null
      * EFFECTS: calcola il profitto del singolo post passato come argomento
      */
-    private double profitCalculation(Post post){
+    private double profitCalculation(Post post) throws UserNotExistException {
         double profit = 0;
         double like_valutation = 0, comment_valutation = 0;
 
@@ -108,9 +114,11 @@ public class RewardsCalculation implements Runnable{
         last_calculation = new Date();
 
         //calcolo la valutazione dei like:
+        HashMap<String, Integer> username_voting_map = new HashMap<>();
         for (Vote v: post.getVotes().values()) {
             if(v.getDate().after(this_calculation)){
                 like_valutation += v.getRate();
+                username_voting_map.putIfAbsent(v.getAuthor(), v.getRate());
             }
         }
         if(like_valutation <= 0){
@@ -153,6 +161,28 @@ public class RewardsCalculation implements Runnable{
 
         profit = (Math.log(like_valutation)+Math.log(comment_valutation))/n_iter;
         //System.out.println("Profitto per il post num " + post.getId() + " di " + post.getAuthor() + ": " + profit);
+
+        if(profit != 0){
+            social.getWallet(post.getAuthor()).addTransaction(profit*0.7);
+
+            HashSet<String> voting_and_commenting_users = new HashSet<>();
+            voting_and_commenting_users.addAll(username_voting_map.keySet());
+            voting_and_commenting_users.addAll(username_commenting_map.keySet());
+
+            if(voting_and_commenting_users.contains(post.getAuthor())){
+                voting_and_commenting_users.remove(post.getAuthor());
+            }
+
+            if(voting_and_commenting_users.size() != 0){
+                double curators_rewards = profit*0.3/voting_and_commenting_users.size();
+
+                for (String s: voting_and_commenting_users) {
+                    social.getWallet(s).addTransaction(curators_rewards);
+                }
+            }
+        }
+
+
 
         return profit;
     }

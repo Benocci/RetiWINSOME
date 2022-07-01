@@ -63,14 +63,30 @@ public class ClientMainWINSOME {
         //inizializzazione della connessione con java NIO
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         SocketChannel socketChannel;
-        try{
-            socketChannel = SocketChannel.open();
-            socketChannel.connect(new InetSocketAddress(config.getServer_address(), config.getServer_port()));
-            socketChannel.configureBlocking(true);
-        }
-        catch (IOException e){
-            e.printStackTrace();
-            return;
+
+        boolean connect = false;
+        socketChannel = SocketChannel.open();
+        while(!connect){
+            try{
+                socketChannel.connect(new InetSocketAddress(config.getServer_address(), config.getServer_port()));
+                socketChannel.configureBlocking(true);
+                connect = true;
+            }
+            catch (IOException e){
+                socketChannel.close();
+                System.out.print("Connessione non riuscita, vuoi riprovare? [si/no]: ");
+                Scanner scanner = new Scanner(System.in);
+
+                String reConnection = scanner.nextLine();
+
+                if(reConnection.contains("no")){
+                    System.out.println("Chiusura connessione in corso!");
+                    return;
+                }
+                else{
+                    socketChannel = SocketChannel.open();
+                }
+            }
         }
 
         //inizializzo le interfacce per il callback

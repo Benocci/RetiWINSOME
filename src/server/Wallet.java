@@ -73,7 +73,7 @@ public class Wallet {
      * MODIFIES: this.transactions
      * EFFECTS: aggiunge una nuova transazione
      */
-    public Boolean addTransaction(int transaction_value){
+    public Boolean addTransaction(double transaction_value){
         return transactions.add(new Transaction(transaction_value));
     }
 }

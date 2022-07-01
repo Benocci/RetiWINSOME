@@ -7,16 +7,16 @@ import java.util.Date;
  *  OVERVIEW: classe che rappresenta una transazione
  */
 public class Transaction {
-    private final int value;
+    private final double value;
     private final Date date;
 
 
-    public Transaction(int value){
+    public Transaction(double value){
         this.value = value;
         this.date = new Date();
     }
 
-    public int getValue() {
+    public double getValue() {
         return value;
     }
 
