@@ -76,7 +76,6 @@ public class RewardsNotification implements Runnable{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Thread terminato!");
     }
 
     /*

@@ -32,8 +32,8 @@ public class Wallet {
     /*
      * EFFECTS: return il valore totale del portafoglio
      */
-    public int getWalletAmount(){
-        int to_return = 0;
+    public double getWalletAmount(){
+        double to_return = 0;
         for (Transaction t: transactions) {
             to_return += t.getValue();
         }
@@ -45,8 +45,8 @@ public class Wallet {
      * EFFECTS: return il valore totale del portafoglio in bitcoin
      * THROWS: IOException se occorrono errori I/O
      */
-    public float getWalletinBitcoin(){
-        float random_value = 0;
+    public double getWalletinBitcoin(){
+        double random_value = 0;
         try{
             URL url = new URL("https://www.random.org/decimal-fractions/?num=1&dec=20&col=1&format=plain&rnd=new");
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -73,7 +73,7 @@ public class Wallet {
      * MODIFIES: this.transactions
      * EFFECTS: aggiunge una nuova transazione
      */
-    public Boolean addTransaction(double transaction_value){
-        return transactions.add(new Transaction(transaction_value));
+    public void addTransaction(double transaction_value){
+        transactions.add(new Transaction(transaction_value));
     }
 }

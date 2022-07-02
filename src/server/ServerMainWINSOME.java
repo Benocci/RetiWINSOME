@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.rmi.NoSuchObjectException;
@@ -181,7 +182,7 @@ public class ServerMainWINSOME {
                 }
             }
             catch (IOException ex){
-                ex.printStackTrace();
+                System.out.println("Connessione con il client persa!");
                 break;
             }
         }

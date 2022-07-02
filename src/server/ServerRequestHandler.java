@@ -485,17 +485,18 @@ public class ServerRequestHandler implements Runnable {
                 Wallet wallet = null;
                 try {
                     wallet = social.getWallet(username);
-                    res = "ok";
+
+                    if (line_parsed.size() != 0 && line_parsed.get(0).equals("btc")) {
+                        res = "Valore del wallet in bitcoin: " + wallet.getWalletinBitcoin();
+                    } else {
+                        res = "Walore del wallet: " + wallet.getWalletAmount();
+                    }
+
                 } catch (UserNotExistException e) {
                     res = "utente non esiste";
                     break;
                 }
 
-                if (line_parsed.get(0).equals("btc")) {
-                    System.out.println("Valore del wallet in bitcoin: " + wallet.getWalletinBitcoin());
-                } else {
-                    System.out.println("Walore del wallet: " + wallet.getWalletAmount());
-                }
 
                 break;
             }

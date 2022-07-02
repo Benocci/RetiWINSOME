@@ -113,11 +113,15 @@ public class ClientMainWINSOME {
                 //la testa della lista corrisponde al comando:
                 String option = line_parsed.remove(0);
 
-
                 if(option.equals("register")){//caso comando = register
                     if (line_parsed.size() < 2 || line_parsed.size() > 7) { //controllo di avere il numero di argomenti corretto
                         System.out.println("Opzione non corretta, per aiuto digitare help.");
-                        break;
+                        continue;
+                    }
+
+                    if(username != null){
+                        System.out.println("Non puoi registrare un nuovo utente mentre sei loggato!");
+                        continue;
                     }
 
                     //estraggo i tag dagli argomenti
@@ -161,6 +165,62 @@ public class ClientMainWINSOME {
                     System.out.println("comment <idPost> <testo>               >commento al post indicato<");
                     System.out.println("wallet                                 >valore del proprio portafoglio<");
                     System.out.println("wallet btc                             >valore del proprio portafoglio in Bitcoin<");
+                    continue;
+                }
+
+                if(!(
+                        option.equals("exit") || option.equals("login") || option.equals("logout") ||
+                        option.equals("list") || option.equals("follow") || option.equals("unfollow") ||
+                        option.equals("blog") || option.equals("post") || option.equals("show") || option.equals("delete") ||
+                        option.equals("rewin") || option.equals("rate") || option.equals("comment") || option.equals("wallet")
+                )){
+                    System.out.println("Opzione non riconosciuta, per aiuto digitare help.");
+                    continue;
+                }
+
+
+                if(option.equals("login") && line_parsed.size() != 2) { //controllo di avere il numero di argomenti corretto
+                    System.out.println("Argomenti non sufficienti, formato corretto: login <username> <password>.");
+                    continue;
+                }
+                else if(option.equals("logout") && line_parsed.size() != 0){
+                    System.out.println("Troppi argomenti, formato corretto: logout.");
+                    continue;
+                }
+                else if(option.equals("list") && line_parsed.size() != 1){
+                    System.out.println("Numero argomenti errato, formato corretto: list user/follower/following.");
+                    continue;
+                }
+                else if(option.equals("follow") && line_parsed.size() != 1){
+                    System.out.println("Numero argomenti errato, formato corretto: follow <username>.");
+                    continue;
+                }
+                else if(option.equals("unfollow") && line_parsed.size() != 1){
+                    System.out.println("Numero argomenti errato, formato corretto: unfollow <username>.");
+                    continue;
+                }
+                else if(option.equals("blog") && line_parsed.size() != 0){
+                    System.out.println("Numero argomenti errato, formato corretto: blog.");
+                    continue;
+                }
+                else if(option.equals("show")&& line_parsed.size() > 3){
+                    System.out.println("Numero argomenti errato, formato corretto: show feed / show post <id>");
+                    continue;
+                }
+                else if(option.equals("delete") && line_parsed.size() != 1){
+                    System.out.println("Numero argomenti errato, formato corretto: delete <idPost>.");
+                    continue;
+                }
+                else if(option.equals("rewin") && line_parsed.size() != 1){
+                    System.out.println("Numero argomenti errato, formato corretto: rewin <idPost>.");
+                    continue;
+                }
+                else if(option.equals("rate") && line_parsed.size() != 2){
+                    System.out.println("Numero argomenti errato, formato corretto: rate <idPost> <vote>.");
+                    continue;
+                }
+                else if(option.equals("wallet") && line_parsed.size() > 1){
+                    System.out.println("Numero argomenti errato, formato corretto: wallet / wallet btc.");
                     continue;
                 }
 
@@ -217,7 +277,6 @@ public class ClientMainWINSOME {
                         e.printStackTrace();
                     }
                     username = null;
-
                 }
 
             }
@@ -225,8 +284,13 @@ public class ClientMainWINSOME {
         catch (IOException e){
             e.printStackTrace();
         }
-        System.out.println("Terminazione del client in corso...");
+
         rewardsNotification.setClientClose();
+
+        if(!rewardsNotificationThread.isInterrupted()){
+            rewardsNotificationThread.interrupt();
+        }
+
         try{
             if(username != null && server != null){
                 server.unregisterForCallback(username);
@@ -238,14 +302,10 @@ public class ClientMainWINSOME {
         }catch (RemoteException ignore){
             ;
         }
+
+
         socketChannel.close();
 
-        if(rewardsNotificationThread.isInterrupted()){
-            System.out.println("Client terminato correttamente.");
-        }
-        else{
-            System.out.println("Interrompo il thread di notifica!");
-            rewardsNotificationThread.interrupt();
-        }
+        System.out.println("Client terminato!");
     }
 }

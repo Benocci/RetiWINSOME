@@ -3,9 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
@@ -41,10 +39,10 @@ public class BackupManager implements Runnable{
                 return;
             }
 
-            saveInJson("src\\backupServerState\\usersBackup.json", social.getUsers());
-            saveInJson("src\\backupServerState\\followerBackup.json", social.getFollowersMap());
-            saveInJson("src\\backupServerState\\followedBackup.json", social.getFollowingMap());
-            saveInJson("src\\backupServerState\\postBackup.json", social.getPostMap());
+            saveInJson(".\\src\\backupServerState\\usersBackup.json", social.getUsers());
+            saveInJson(".\\src\\backupServerState\\followerBackup.json", social.getFollowersMap());
+            saveInJson(".\\src\\backupServerState\\followedBackup.json", social.getFollowingMap());
+            saveInJson(".\\src\\backupServerState\\postBackup.json", social.getPostMap());
         }
     }
 
@@ -53,10 +51,10 @@ public class BackupManager implements Runnable{
     }
 
     public void loadBackup(){
-        String usersMap = readJson("src\\backupServerState\\usersBackup.json");
-        String followersMap = readJson("src\\backupServerState\\followerBackup.json");
-        String followingMap = readJson("src\\backupServerState\\followedBackup.json");
-        String postMap = readJson("src\\backupServerState\\postBackup.json");
+        String usersMap = readJson(".\\src\\backupServerState\\usersBackup.json");
+        String followersMap = readJson(".\\src\\backupServerState\\followerBackup.json");
+        String followingMap = readJson(".\\src\\backupServerState\\followedBackup.json");
+        String postMap = readJson(".\\src\\backupServerState\\postBackup.json");
 
         if(usersMap != null || usersMap.equals("")){
             Type type = new TypeToken<ConcurrentHashMap<String, User>>() {}.getType();
@@ -85,9 +83,25 @@ public class BackupManager implements Runnable{
         try{
             source = Channels.newChannel(new FileInputStream(path));
         }
-        catch (Exception e){
-            e.printStackTrace();
-            return null;
+        catch (FileNotFoundException e){
+            new File("backupServerState").mkdirs();
+
+            File file = new File(path);
+            try{
+                file.createNewFile();
+            }
+            catch (IOException ex){
+                e.printStackTrace();
+                return null;
+            }
+
+            try{
+                source = Channels.newChannel(new FileInputStream(path));
+            }
+            catch (FileNotFoundException e1){
+                e1.printStackTrace();
+                return null;
+            }
         }
 
         ByteBuffer to_read = ByteBuffer.allocateDirect(2048);

@@ -169,9 +169,7 @@ public class RewardsCalculation implements Runnable{
             voting_and_commenting_users.addAll(username_voting_map.keySet());
             voting_and_commenting_users.addAll(username_commenting_map.keySet());
 
-            if(voting_and_commenting_users.contains(post.getAuthor())){
-                voting_and_commenting_users.remove(post.getAuthor());
-            }
+            voting_and_commenting_users.remove(post.getAuthor());
 
             if(voting_and_commenting_users.size() != 0){
                 double curators_rewards = profit*0.3/voting_and_commenting_users.size();
