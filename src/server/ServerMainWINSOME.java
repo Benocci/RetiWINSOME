@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.rmi.NoSuchObjectException;
@@ -32,18 +31,15 @@ public class ServerMainWINSOME {
     public static void main(String[] args) {
         File file;
         if(args.length < 1){
-            file = new File("src\\configFile\\configServer.json");
-            System.out.println("Server avviato con la configurazione di default.");
+            System.out.println("Passare un file di config per il server.");
+            return;
         }
         else{
             file = new File(args[0]);
 
             if(!file.exists()){
-                file = new File("src\\configFile\\configServer.json");
-                System.out.println("Server avviato con la configurazione di default.");
-            }
-            else{
-                System.out.println("Server avviato con la configurazione data da \"" + args[0] + "\"");
+                System.out.println("File di configurazione non valido, riprovare con un altro file.");
+                return;
             }
         }
 
@@ -56,6 +52,8 @@ public class ServerMainWINSOME {
         catch (Exception e){
             throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
         }
+
+        System.out.println("Server avviato con la configurazione data da \"" + args[0] + "\"");
 
         //inizializzo il socialnetwork
         socialNetwork = new SocialNetwork();

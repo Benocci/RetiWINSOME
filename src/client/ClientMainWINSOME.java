@@ -29,19 +29,16 @@ public class ClientMainWINSOME {
 
         //validazione del file di config
         File file;
-        if(args.length < 1){//se non è stato passato un file di config uso quello di default
-            file = new File("src\\configFile\\configClient.json");
-            System.out.println("Client avviato con la configurazione di default.");
+        if(args.length < 1){//se non è stato passato un file di config lo richiedo
+            System.out.println("Passare un file di configurazione del client.");
+            return;
         }
         else{//altrimenti leggo il file json passato per argomento
             file = new File(args[0]);
 
             if(!file.exists()){
-                file = new File("src\\configFile\\configClient.json");
-                System.out.println("Client avviato con la configurazione di default.");
-            }
-            else{
-                System.out.println("Client avviato con la configurazione data da \"" + args[0] + "\"");
+                System.out.println("File di configurazione non valido, riprovare con un altro file.");
+                return;
             }
         }
 
@@ -55,10 +52,7 @@ public class ClientMainWINSOME {
             throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
         }
 
-        //inizializzazione e lancio del thread che riceve i datagrammi UDP multicast dei rewards:
-        RewardsNotification rewardsNotification = new RewardsNotification(config.getMulticast_address(), config.getMulticast_port());
-        Thread rewardsNotificationThread = new Thread(rewardsNotification);
-        rewardsNotificationThread.start();
+        System.out.println("Client avviato con la configurazione data da \"" + args[0] + "\"");
 
         //inizializzazione della connessione con java NIO
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -81,6 +75,9 @@ public class ClientMainWINSOME {
 
                 if(reConnection.contains("no")){
                     System.out.println("Chiusura connessione in corso!");
+                    socketChannel.close();
+
+                    System.out.println("Client terminato!");
                     return;
                 }
                 else{
@@ -88,6 +85,10 @@ public class ClientMainWINSOME {
                 }
             }
         }
+        //inizializzazione e lancio del thread che riceve i datagrammi UDP multicast dei rewards:
+        RewardsNotification rewardsNotification = new RewardsNotification(config.getMulticast_address(), config.getMulticast_port());
+        Thread rewardsNotificationThread = new Thread(rewardsNotification);
+        rewardsNotificationThread.start();
 
         //inizializzo le interfacce per il callback
         ServerCallbackInterface server = null;
@@ -199,6 +200,12 @@ public class ClientMainWINSOME {
                     System.out.println("Numero argomenti errato, formato corretto: unfollow <username>.");
                     continue;
                 }
+                else if(option.equals("post")){
+                    if(line_read.chars().filter(ch -> ch == '"').count() != 4){
+                        System.out.println("Sintassi del comando errata, formato corretto: post \"<titolo>\" \"<contenuto>\".");
+                        break;
+                    }
+                }
                 else if(option.equals("blog") && line_parsed.size() != 0){
                     System.out.println("Numero argomenti errato, formato corretto: blog.");
                     continue;
@@ -210,6 +217,12 @@ public class ClientMainWINSOME {
                 else if(option.equals("delete") && line_parsed.size() != 1){
                     System.out.println("Numero argomenti errato, formato corretto: delete <idPost>.");
                     continue;
+                }
+                else if(option.equals("comment")){
+                    if(line_read.chars().filter(ch -> ch == '"').count() != 2){
+                        System.out.println("Sintassi del comando errata, formato corretto: comment <idPost> \"<contenuto>\".");
+                        break;
+                    }
                 }
                 else if(option.equals("rewin") && line_parsed.size() != 1){
                     System.out.println("Numero argomenti errato, formato corretto: rewin <idPost>.");

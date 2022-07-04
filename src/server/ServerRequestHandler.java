@@ -275,7 +275,7 @@ public class ServerRequestHandler implements Runnable {
                 }
 
                 if(request.chars().filter(ch -> ch == '"').count() != 4){
-                    res = "comando non corretto";
+                    res = "comando non corretto, help per aiuto";
                     break;
                 }
 
@@ -455,6 +455,11 @@ public class ServerRequestHandler implements Runnable {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
                     System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
+                    break;
+                }
+
+                if(request.chars().filter(ch -> ch == '"').count() != 2){
+                    res = "comando non corretto, help per aiuto";
                     break;
                 }
 

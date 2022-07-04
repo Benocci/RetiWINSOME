@@ -84,7 +84,7 @@ public class BackupManager implements Runnable{
             source = Channels.newChannel(new FileInputStream(path));
         }
         catch (FileNotFoundException e){
-            new File("backupServerState").mkdirs();
+            new File(".\\src\\backupServerState\\").mkdirs();
 
             File file = new File(path);
             try{
