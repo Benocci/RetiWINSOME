@@ -98,7 +98,8 @@ public class ClientMainWINSOME {
         System.out.println("Connessione stabilita con il server su " + config.getServer_address() + "/" + config.getServer_port());
         try {
             System.out.println("Avvio CLI...");
-            while (true) { //ciclo principale del client
+            boolean continueLoop = true;
+            while (continueLoop) { //ciclo principale del client
                 System.out.print("> ");
 
                 //leggo da standard input
@@ -141,6 +142,8 @@ public class ClientMainWINSOME {
 
                     //chiamata RMI
                     registrationRMI.register(line_parsed.get(0), line_parsed.get(1), tags);
+
+                    System.out.println("< " + line_parsed.get(0) + " benvenuto su WINSOME!");
 
                     continue;
                 }
@@ -188,9 +191,16 @@ public class ClientMainWINSOME {
                     System.out.println("Troppi argomenti, formato corretto: logout.");
                     continue;
                 }
-                else if(option.equals("list") && line_parsed.size() != 1){
-                    System.out.println("Numero argomenti errato, formato corretto: list user/follower/following.");
-                    continue;
+                else if(option.equals("list")){
+                    if(line_parsed.size() != 1){
+                        System.out.println("Numero argomenti errato, formato corretto: list user/followers/following.");
+                        continue;
+                    }
+
+                    if(! (line_parsed.get(0).equals("followers") || line_parsed.get(0).equals("following") || line_parsed.get(0).equals("users"))){
+                        System.out.println("Non esiste la lista richiesta, formato corretto: list user/followers/following.");
+                        continue;
+                    }
                 }
                 else if(option.equals("follow") && line_parsed.size() != 1){
                     System.out.println("Numero argomenti errato, formato corretto: follow <username>.");
@@ -237,6 +247,10 @@ public class ClientMainWINSOME {
                     continue;
                 }
 
+                if(option.equals("exit")){
+                    continueLoop = false;
+                }
+
                 // qualsiasi altro comando si comporta inviando un messaggio al server
                 ByteBuffer request = ByteBuffer.wrap(new byte[line_read.length()+Integer.BYTES]);
                 request.putInt(line_read.length());
@@ -246,10 +260,6 @@ public class ClientMainWINSOME {
                 //invio del mesasggio
                 socketChannel.write(request);
                 request.clear();
-
-                if(line_read.contains("exit")){
-                    break;
-                }
 
                 //inizializzo i bytebuffer per la risposta dal server:
                 ByteBuffer response_lenght, response;
@@ -293,6 +303,8 @@ public class ClientMainWINSOME {
                 }
 
             }
+
+
         }
         catch (IOException e){
             e.printStackTrace();

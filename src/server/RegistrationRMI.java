@@ -14,7 +14,6 @@ public class RegistrationRMI implements RegistrationRMIInterface{
         SocialNetwork socialNetwork = ServerMainWINSOME.socialNetwork;
 
         String user = username.toLowerCase();
-        String psw = password.toLowerCase();
 
         if(socialNetwork.userExist(user)){
             System.out.println("Utente già presente!");

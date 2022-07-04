@@ -157,13 +157,6 @@ public class ServerMainWINSOME {
                         request.clear();
                         selectionKey.attach(null);
 
-                        if(read.contains("exit")){
-                            System.out.println("Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
-                            selectionKey.cancel();
-                            socketChannel.close();
-                            continue;
-                        }
-
                         try {
                             socketChannel.register(selector, SelectionKey.OP_WRITE, read);
                         } catch (ClosedChannelException e) {

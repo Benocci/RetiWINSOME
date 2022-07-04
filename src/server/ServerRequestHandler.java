@@ -55,6 +55,15 @@ public class ServerRequestHandler implements Runnable {
             e.printStackTrace();
         }
         to_send.clear();
+
+        if(request.contains("exit")){
+            try {
+                System.out.println("Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
+                socketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -76,6 +85,16 @@ public class ServerRequestHandler implements Runnable {
         String res = "";
 
         switch (option) {
+            case "exit": {
+                if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
+                    res = "ok";
+                    break;
+                }
+
+                ServerMainWINSOME.loggedUsers.remove(channel);
+                res = "ok";
+                break;
+            }
             case "login": { // richiesta di login
                 if (line_parsed.size() != 2) { // controllo sul numero di argomenti
                     System.out.println("Errore!");
@@ -137,7 +156,6 @@ public class ServerRequestHandler implements Runnable {
                         else{
                             to_return.append("Lista seguiti: ");
                         }
-
                         break;
                     }
                     case "following": {
