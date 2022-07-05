@@ -185,6 +185,9 @@ public class SocialNetwork {
             if(p.getAuthor().equals(username)){
                 to_return.add(p);
             }
+            else if(p.getRewinUsers().contains(username)){
+                to_return.add(p);
+            }
         }
 
         return to_return;

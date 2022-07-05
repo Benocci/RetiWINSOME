@@ -10,7 +10,6 @@ import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
@@ -257,6 +256,9 @@ public class ServerRequestHandler implements Runnable {
                     StringBuilder to_return = new StringBuilder();
                     to_return.append("Lista dei post di " + username +  ".\n");
                     for (Post post : postView) {
+                        if(!post.getAuthor().equals(username)){
+                            to_return.append(" * Rewin da " + post.getAuthor() + " del post:\n");
+                        }
                         to_return.append(" * Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                         to_return.append(" * Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                         to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
@@ -338,6 +340,19 @@ public class ServerRequestHandler implements Runnable {
                                 for (Post post : authorPostView) {
                                     to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                                     to_return.append(" * Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
+                                    int size = post.getRewinUsers().size();
+                                    if(size > 0){
+                                        to_return.append(" * Rewin fatto da: ");
+                                        for (String s: post.getRewinUsers()) {
+                                            if(size > 1){
+                                                to_return.append(s + ",");
+                                            }
+                                            else{
+                                                to_return.append(s + ".\n");
+                                            }
+                                            size--;
+                                        }
+                                    }
                                     to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
                                     for (Vote v: post.getVotes().values()) {
                                         if(v.getRate() == 1){

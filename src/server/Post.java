@@ -123,4 +123,8 @@ public class Post {
 
         rewinUsers.add(username);
     }
+
+    public ConcurrentLinkedQueue<String> getRewinUsers() {
+        return rewinUsers;
+    }
 }
