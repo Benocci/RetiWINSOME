@@ -151,8 +151,8 @@ public class SocialNetwork {
             throw new UserNotExistException();
         }
 
-        followersMap.get(username).add(to_follow);
-        followingMap.get(to_follow).add(username);
+        followersMap.get(to_follow).add(username);
+        followingMap.get(username).add(to_follow);
     }
 
     /*
@@ -166,8 +166,8 @@ public class SocialNetwork {
             throw new UserNotExistException();
         }
 
-        followersMap.get(username).remove(to_unfollow);
-        followingMap.get(to_unfollow).remove(username);
+        followersMap.get(to_unfollow).remove(username);
+        followingMap.get(username).remove(to_unfollow);
     }
 
     /*

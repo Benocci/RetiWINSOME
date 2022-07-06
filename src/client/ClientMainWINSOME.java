@@ -21,26 +21,26 @@ import java.util.*;
  *  OVERVIEW: classe main del client in cui avviene la sua inizializzazzione e in cui è presente il ciclo principale della CLI con invio dei messaggi al server
  */
 public class ClientMainWINSOME {
-    private static String username;
-    public static ArrayList<String> follower = new ArrayList<>();
+    private static String username; //stringa con username dell'utente loggato su questo client, se non loggato username = null.
+    public static ArrayList<String> followers = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Avvio client in corso...");
 
         //validazione del file di config
         File file;
         if(args.length < 1){//se non è stato passato un file di config lo richiedo
-            System.out.println("Passare un file di configurazione del client.");
+            System.out.println("Passare un file json di configurazione del client.");
             return;
         }
         else{//altrimenti leggo il file json passato per argomento
             file = new File(args[0]);
 
             if(!file.exists()){
-                System.out.println("File di configurazione non valido, riprovare con un altro file.");
+                System.out.println("File di configurazione \"" + args[0] + "\" non valido, riprovare con un altro file.");
                 return;
             }
         }
+
 
         //lettura del file di config e conversione in oggetto java:
         ObjectMapper objectMapper = new ObjectMapper();
@@ -49,42 +49,45 @@ public class ClientMainWINSOME {
             config = objectMapper.readValue(file, ConfigClientWINSOME.class);
         }
         catch (Exception e){
-            throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
+            throw new RuntimeException("Errore nella lettura del file di config: " + e.getMessage());
         }
 
-        System.out.println("Client avviato con la configurazione data da \"" + args[0] + "\"");
+        //System.out.println("Client avviato con la configurazione data da \"" + args[0] + "\"");
+
 
         //inizializzazione della connessione con java NIO
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         SocketChannel socketChannel;
 
         boolean connect = false;
-        socketChannel = SocketChannel.open();
+        socketChannel = SocketChannel.open();//apertura del canale
         while(!connect){
             try{
+                //connessione su indirizzo e porta specificati dal file di config
                 socketChannel.connect(new InetSocketAddress(config.getServer_address(), config.getServer_port()));
                 socketChannel.configureBlocking(true);
                 connect = true;
             }
-            catch (IOException e){
+            catch (IOException e){ //in caso di eccezzioni di tipo I/O (connect non riuscita) chiudo la connessione e chiedo se riaprirla
                 socketChannel.close();
                 System.out.print("Connessione non riuscita, vuoi riprovare? [si/no]: ");
                 Scanner scanner = new Scanner(System.in);
 
                 String reConnection = scanner.nextLine();
 
-                if(reConnection.contains("no")){
+                if(reConnection.contains("no")){ // chiudo la connessione e termino il client
                     System.out.println("Chiusura connessione in corso!");
                     socketChannel.close();
 
                     System.out.println("Client terminato!");
                     return;
                 }
-                else{
+                else{//riapro la connessione e riprovo la connect
                     socketChannel = SocketChannel.open();
                 }
             }
         }
+
         //inizializzazione e lancio del thread che riceve i datagrammi UDP multicast dei rewards:
         RewardsNotification rewardsNotification = new RewardsNotification(config.getMulticast_address(), config.getMulticast_port());
         Thread rewardsNotificationThread = new Thread(rewardsNotification);
@@ -96,8 +99,9 @@ public class ClientMainWINSOME {
         NotifyEventInterface stub = null;
 
         System.out.println("Connessione stabilita con il server su " + config.getServer_address() + "/" + config.getServer_port());
+        System.out.println("Benvenuto su WINSOME, digitare help per la lista dei comandi.");
+
         try {
-            System.out.println("Avvio CLI...");
             boolean continueLoop = true;
             while (continueLoop) { //ciclo principale del client
                 System.out.print("> ");
@@ -116,12 +120,12 @@ public class ClientMainWINSOME {
                 String option = line_parsed.remove(0);
 
                 if(option.equals("register")){//caso comando = register
-                    if (line_parsed.size() < 2 || line_parsed.size() > 7) { //controllo di avere il numero di argomenti corretto
-                        System.out.println("Opzione non corretta, per aiuto digitare help.");
+                    if (line_parsed.size() <= 2 || line_parsed.size() > 7) { //controllo di avere il numero di argomenti corretto
+                        System.out.println("Numero argomenti errato, per aiuto digitare help.");
                         continue;
                     }
 
-                    if(username != null){
+                    if(username != null){ // controllo se il client non è già loggato sul server
                         System.out.println("Non puoi registrare un nuovo utente mentre sei loggato!");
                         continue;
                     }
@@ -140,7 +144,7 @@ public class ClientMainWINSOME {
                         return;
                     }
 
-                    //chiamata RMI
+                    //chiamata RMI per la ricezione di eventi di follow
                     registrationRMI.register(line_parsed.get(0), line_parsed.get(1), tags);
 
                     System.out.println("< " + line_parsed.get(0) + " benvenuto su WINSOME!");
@@ -172,6 +176,7 @@ public class ClientMainWINSOME {
                     continue;
                 }
 
+                //controllo preliminare sul comando
                 if(!(
                         option.equals("exit") || option.equals("login") || option.equals("logout") ||
                         option.equals("list") || option.equals("follow") || option.equals("unfollow") ||
@@ -183,6 +188,7 @@ public class ClientMainWINSOME {
                 }
 
 
+                //serie di controlli generici per ogni comandi
                 if(option.equals("login") && line_parsed.size() != 2) { //controllo di avere il numero di argomenti corretto
                     System.out.println("Argomenti non sufficienti, formato corretto: login <username> <password>.");
                     continue;
@@ -197,7 +203,30 @@ public class ClientMainWINSOME {
                         continue;
                     }
 
-                    if(! (line_parsed.get(0).equals("followers") || line_parsed.get(0).equals("following") || line_parsed.get(0).equals("users"))){
+                    if(line_parsed.get(0).equals("followers")){
+                        if(username != null) {
+                            if (followers.isEmpty()) {
+                                System.out.println("< Non ti segue nessuno.");
+                            } else {
+                                int size = followers.size();
+                                System.out.print("< Lista seguaci: ");
+                                for (String s : followers) {
+                                    if (size > 1) {
+                                        System.out.print(s + ", ");
+                                    } else {
+                                        System.out.println(s + ".");
+                                    }
+                                    size--;
+                                }
+                            }
+                        }
+                        else{
+                            System.out.println("< utente non loggato");
+                        }
+                        continue;
+                    }
+
+                    if(! (line_parsed.get(0).equals("following") || line_parsed.get(0).equals("users"))){
                         System.out.println("Non esiste la lista richiesta, formato corretto: list user/followers/following.");
                         continue;
                     }
@@ -220,9 +249,16 @@ public class ClientMainWINSOME {
                     System.out.println("Numero argomenti errato, formato corretto: blog.");
                     continue;
                 }
-                else if(option.equals("show")&& line_parsed.size() > 3){
-                    System.out.println("Numero argomenti errato, formato corretto: show feed / show post <id>");
-                    continue;
+                else if(option.equals("show")){
+                    if(line_parsed.size() < 1){
+                        System.out.println("Numero argomenti errato, formato corretto: show feed / show post <id>");
+                        continue;
+                    }
+
+                    if(! (line_parsed.get(0).equals("feed") || line_parsed.get(0).equals("post"))){
+                        System.out.println("Non esiste il comando richiesto, formato corretto: show feed / show post <id>.");
+                        continue;
+                    }
                 }
                 else if(option.equals("delete") && line_parsed.size() != 1){
                     System.out.println("Numero argomenti errato, formato corretto: delete <idPost>.");
@@ -242,32 +278,42 @@ public class ClientMainWINSOME {
                     System.out.println("Numero argomenti errato, formato corretto: rate <idPost> <vote>.");
                     continue;
                 }
-                else if(option.equals("wallet") && line_parsed.size() > 1){
-                    System.out.println("Numero argomenti errato, formato corretto: wallet / wallet btc.");
-                    continue;
+                else if(option.equals("wallet")){
+                    if(line_parsed.size() == 1 && !line_parsed.get(0).equals("btc")){
+                        System.out.println("Non esiste il comando richiesto, formato corretto: wallet / wallet btc.");
+                        continue;
+                    }
+
+                    if(line_parsed.size() >= 2){
+                        System.out.println("Numero argomenti errato, formato corretto: wallet / wallet btc.");
+                        continue;
+                    }
                 }
 
-                if(option.equals("exit")){
+                if(option.equals("exit")){ // in caso di exit invio comunque al server il comando ma imposto la fine del ciclo del client
                     continueLoop = false;
                 }
 
-                // qualsiasi altro comando si comporta inviando un messaggio al server
+                // invio del messaggio al server con java NIO:
+
+                //creo il buffer di byte:
                 ByteBuffer request = ByteBuffer.wrap(new byte[line_read.length()+Integer.BYTES]);
                 request.putInt(line_read.length());
                 request.put(line_read.getBytes());
                 request.flip();
 
-                //invio del mesasggio
+                //invio del buffer di byte contenente il messaggio:
                 socketChannel.write(request);
                 request.clear();
 
                 //inizializzo i bytebuffer per la risposta dal server:
                 ByteBuffer response_lenght, response;
                 response_lenght = ByteBuffer.allocate(Integer.BYTES);
+                //leggo la lunghezza del messaggio in arrivo
                 socketChannel.read(response_lenght);
-
                 response_lenght.flip();
                 int msg_lenght = response_lenght.getInt();
+                //alloco il bytebuffer della lunghezza indicata e su di esso leggo il messaggio di risposta del server:
                 response = ByteBuffer.allocate(msg_lenght);
                 socketChannel.read(response);
                 response.flip();
@@ -275,10 +321,10 @@ public class ClientMainWINSOME {
                 //traduco la risposta in stringa
                 String line_write = new String(response.array());
 
-                //controllo del codice di risposta:
+                //stampo la risposta del server:
                 System.out.println("< " + line_write);
 
-                if(option.equals("login") && line_write.equals("ok")){
+                if(option.equals("login") && line_write.equals("ok")){//in caso di login effettuato correttamente setto username e registro il client per le callback
                     try {
                         Registry registry = LocateRegistry.getRegistry(config.getRmi_callback_port());
                         server = (ServerCallbackInterface) registry.lookup(config.getRmi_callback_name());
@@ -286,13 +332,14 @@ public class ClientMainWINSOME {
                         stub = (NotifyEventInterface) UnicastRemoteObject.exportObject(callbackObj, 0);
                         username = line_parsed.get(0);
                         server.registerForCallback(username,stub);
+                        followers = server.getFollowersList(username);
                     }
                     catch (Exception e){
                         e.printStackTrace();
                     }
                 }
 
-                if(option.equals("logout") && line_write.equals("ok") && server != null){
+                if(option.equals("logout") && line_write.equals("ok") && server != null){//in caso di logout effettuato correttamente tolgo il client dalla callback
                     try{
                         server.unregisterForCallback(username);
                     }
@@ -300,24 +347,26 @@ public class ClientMainWINSOME {
                         e.printStackTrace();
                     }
                     username = null;
+                    followers = new ArrayList<>();
                 }
 
             }
-
-
         }
         catch (IOException e){
             e.printStackTrace();
         }
+        //fine del client:
 
+        //imposto la chiusura del thread che legge i rewards:
         rewardsNotification.setClientClose();
 
-        if(!rewardsNotificationThread.isInterrupted()){
-            rewardsNotificationThread.interrupt();
+        while(!rewardsNotificationThread.isInterrupted()){
+            System.out.println("DEBUG: Interrompo il thread.");
+            rewardsNotificationThread.interrupt();//interrompo il thread
         }
 
         try{
-            if(username != null && server != null){
+            if(username != null && server != null){ // se è stata fatta una exit con un client loggato tolgo dalla registrazione della callback
                 server.unregisterForCallback(username);
             }
 
@@ -328,8 +377,7 @@ public class ClientMainWINSOME {
             ;
         }
 
-
-        socketChannel.close();
+        socketChannel.close(); // chiudo la connessione
 
         System.out.println("Client terminato!");
     }

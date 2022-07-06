@@ -24,4 +24,5 @@ public class RegistrationRMI implements RegistrationRMIInterface{
 
         System.out.println("Utente " + user + " aggiunto");
     }
+
 }

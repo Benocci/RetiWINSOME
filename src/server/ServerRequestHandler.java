@@ -147,9 +147,9 @@ public class ServerRequestHandler implements Runnable {
                 StringBuilder to_return = new StringBuilder();
 
                 switch (line_parsed.get(0)) {
-                    case "followers": {
-                        list = social.getFollowers(username);
-                        if(list == null){
+                    case "following": {
+                        list = social.getFollowing(username);
+                        if(list.isEmpty()){
                             to_return.append("Non segui nessuno.");
                         }
                         else{
@@ -157,19 +157,9 @@ public class ServerRequestHandler implements Runnable {
                         }
                         break;
                     }
-                    case "following": {
-                        list = social.getFollowing(username);
-                        if(list == null){
-                            to_return.append("Nessuno ti segue.");
-                        }
-                        else{
-                            to_return.append("Lista seguaci: ");
-                        }
-                        break;
-                    }
                     case "users": {
                         list = social.listUsers(social.getUser(username));
-                        if(list == null){
+                        if(list.isEmpty()){
                             to_return.append("Nessun utente con tag comuni ai tuoi.");
                         }
                         else{
@@ -178,6 +168,7 @@ public class ServerRequestHandler implements Runnable {
                         break;
                     }
                 }
+
 
                 if(list != null) {
                     int size = list.size();

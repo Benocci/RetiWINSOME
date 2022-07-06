@@ -1,1 +1,17 @@
-{"camaccioli":[],"denise":[],"francesco":["denise","ivan","luigi"],"luigi":["francesco"],"ivan":["francesco"]}
+{
+  "camaccioli": [],
+  "denise": [],
+  "mario": [],
+  "francesco": [
+    "denise",
+    "ivan",
+    "luigi",
+    "camaccioli"
+  ],
+  "luigi": [
+    "francesco"
+  ],
+  "ivan": [
+    "francesco"
+  ]
+}

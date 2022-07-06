@@ -5,6 +5,7 @@ import client.NotifyEventInterface;
 
 import java.rmi.*;
 import java.rmi.server.*;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /*
@@ -46,5 +47,13 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
         if(clients.containsKey(follower)){
             clients.get(follower).notifyEvent(value, username);
         }
+    }
+
+    @Override
+    public ArrayList<String> getFollowersList(String username) throws RemoteException {
+        SocialNetwork socialNetwork = ServerMainWINSOME.socialNetwork;
+
+        return socialNetwork.getFollowers(username);
+
     }
 }

@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.*;
@@ -20,7 +21,7 @@ public class BackupManager implements Runnable{
 
     public BackupManager(SocialNetwork social){
         this.social = social;
-        this.gson = new Gson();
+        this.gson = new GsonBuilder().setPrettyPrinting().create();
         this.stopBackup = false;
     }
 

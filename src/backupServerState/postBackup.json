@@ -1,1 +1,101 @@
-{"0":{"id":0,"author":"francesco","title":"primo post","content":"sono il primo post","date":"Jun 23, 2022, 5:00:29 PM","votes":{"ivan":{"author":"ivan","date":"Jun 23, 2022, 5:15:09 PM","rate":1}},"rewinUsers":[],"comments":[],"num_iteration":2},"1":{"id":1,"author":"denise","title":"primo post mio","content":"un post","date":"Jun 23, 2022, 5:40:08 PM","votes":{"francesco":{"author":"francesco","date":"Jun 23, 2022, 5:40:47 PM","rate":1}},"rewinUsers":["francesco"],"comments":[],"num_iteration":2},"2":{"id":2,"author":"ivan","title":"ciao","content":"sono ivan","date":"Jul 1, 2022, 9:45:28 AM","votes":{"francesco":{"author":"francesco","date":"Jul 1, 2022, 9:46:18 AM","rate":1}},"rewinUsers":[],"comments":[{"author":"francesco","content":"bel post","date":"Jul 1, 2022, 9:47:22 AM"}],"num_iteration":3},"3":{"id":3,"author":"ivan","title":"ciao a tutti","content":"come va?","date":"Jul 2, 2022, 6:35:22 PM","votes":{},"rewinUsers":[],"comments":[{"author":"francesco","content":"tutto bene","date":"Jul 2, 2022, 6:42:51 PM"}],"num_iteration":2},"4":{"id":4,"author":"luigi","title":"il mio gioco preferito","content":"avete provato fall guys?","date":"Jul 4, 2022, 5:30:25 PM","votes":{"francesco":{"author":"francesco","date":"Jul 4, 2022, 5:34:06 PM","rate":1}},"rewinUsers":[],"comments":[{"author":"francesco","content":"piace solo a te","date":"Jul 4, 2022, 5:31:17 PM"}],"num_iteration":3}}
+{
+  "0": {
+    "id": 0,
+    "author": "francesco",
+    "title": "primo post",
+    "content": "sono il primo post",
+    "date": "Jun 23, 2022, 5:00:29 PM",
+    "votes": {
+      "ivan": {
+        "author": "ivan",
+        "date": "Jun 23, 2022, 5:15:09 PM",
+        "rate": 1
+      }
+    },
+    "rewinUsers": [],
+    "comments": [],
+    "num_iteration": 2
+  },
+  "1": {
+    "id": 1,
+    "author": "denise",
+    "title": "primo post mio",
+    "content": "un post",
+    "date": "Jun 23, 2022, 5:40:08 PM",
+    "votes": {
+      "francesco": {
+        "author": "francesco",
+        "date": "Jun 23, 2022, 5:40:47 PM",
+        "rate": 1
+      }
+    },
+    "rewinUsers": [
+      "francesco"
+    ],
+    "comments": [],
+    "num_iteration": 2
+  },
+  "2": {
+    "id": 2,
+    "author": "ivan",
+    "title": "ciao",
+    "content": "sono ivan",
+    "date": "Jul 1, 2022, 9:45:28 AM",
+    "votes": {
+      "francesco": {
+        "author": "francesco",
+        "date": "Jul 1, 2022, 9:46:18 AM",
+        "rate": 1
+      }
+    },
+    "rewinUsers": [],
+    "comments": [
+      {
+        "author": "francesco",
+        "content": "bel post",
+        "date": "Jul 1, 2022, 9:47:22 AM"
+      }
+    ],
+    "num_iteration": 3
+  },
+  "3": {
+    "id": 3,
+    "author": "ivan",
+    "title": "ciao a tutti",
+    "content": "come va?",
+    "date": "Jul 2, 2022, 6:35:22 PM",
+    "votes": {},
+    "rewinUsers": [],
+    "comments": [
+      {
+        "author": "francesco",
+        "content": "tutto bene",
+        "date": "Jul 2, 2022, 6:42:51 PM"
+      }
+    ],
+    "num_iteration": 2
+  },
+  "4": {
+    "id": 4,
+    "author": "luigi",
+    "title": "il mio gioco preferito",
+    "content": "avete provato fall guys?",
+    "date": "Jul 4, 2022, 5:30:25 PM",
+    "votes": {
+      "francesco": {
+        "author": "francesco",
+        "date": "Jul 4, 2022, 5:34:06 PM",
+        "rate": 1
+      }
+    },
+    "rewinUsers": [],
+    "comments": [
+      {
+        "author": "francesco",
+        "content": "piace solo a te",
+        "date": "Jul 4, 2022, 5:31:17 PM"
+      }
+    ],
+    "num_iteration": 3
+  }
+}
