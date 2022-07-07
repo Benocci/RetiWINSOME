@@ -4,6 +4,7 @@ import exception.*;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /*
@@ -16,8 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SocialNetwork {
     private ConcurrentHashMap<String, User> users;
-    private ConcurrentHashMap<String, ArrayList<String>> followersMap;
-    private ConcurrentHashMap<String, ArrayList<String>> followingMap;
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followersMap;
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followingMap;
     private ConcurrentHashMap<Integer, Post> postMap;
 
     private AtomicInteger post_id;
@@ -46,8 +47,8 @@ public class SocialNetwork {
      */
     public void addUser(User to_add){
         users.putIfAbsent(to_add.getUsername(), to_add);
-        followersMap.putIfAbsent(to_add.getUsername(), new ArrayList<>());
-        followingMap.putIfAbsent(to_add.getUsername(), new ArrayList<>());
+        followersMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
+        followingMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
     }
 
     /*
@@ -64,8 +65,8 @@ public class SocialNetwork {
      * EFFECTS: ritorna un arraylist di stringe con gli username degli utenti che hanno almeno un tag in comune con user
      * THROWS:
      */
-    public ArrayList<String> listUsers(User user){
-        ArrayList<String> to_return = new ArrayList();
+    public ConcurrentLinkedQueue<String> listUsers(User user){
+        ConcurrentLinkedQueue<String> to_return = new ConcurrentLinkedQueue<>();
 
         for (User u: users.values()) {
             for (String s: user.getTags()) {
@@ -89,11 +90,11 @@ public class SocialNetwork {
         return users;
     }
 
-    public ConcurrentHashMap<String, ArrayList<String>> getFollowersMap() {
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getFollowersMap() {
         return followersMap;
     }
 
-    public ConcurrentHashMap<String, ArrayList<String>> getFollowingMap() {
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getFollowingMap() {
         return followingMap;
     }
 
@@ -110,13 +111,13 @@ public class SocialNetwork {
         }
     }
 
-    public void setFollowersMap(ConcurrentHashMap<String, ArrayList<String>> followersMap) {
+    public void setFollowersMap(ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followersMap) {
         if(followersMap != null){
             this.followersMap = followersMap;
         }
     }
 
-    public void setFollowingMap(ConcurrentHashMap<String, ArrayList<String>> followingMap) {
+    public void setFollowingMap(ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followingMap) {
         if(followingMap != null){
             this.followingMap = followingMap;
         }
@@ -128,7 +129,7 @@ public class SocialNetwork {
      * THROWS:
      */
     public ArrayList<String> getFollowers(String username) {
-        return followersMap.get(username);
+        return new ArrayList<>(followersMap.get(username));
     }
 
     /*
@@ -137,7 +138,7 @@ public class SocialNetwork {
      * THROWS:
      */
     public ArrayList<String> getFollowing(String username) {
-        return followingMap.get(username);
+        return new ArrayList<>(followingMap.get(username));
     }
 
     /*
@@ -175,11 +176,11 @@ public class SocialNetwork {
      * EFFECTS: ritorna un arraylist con tutti i post di cui username è autore
      * THROWS: UserNotExistException se username non è presente nel socialnewtok
      */
-    public ArrayList<Post> viewBlog(String username) throws UserNotExistException {
+    public ConcurrentLinkedQueue<Post> viewBlog(String username) throws UserNotExistException {
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
-        ArrayList<Post> to_return = new ArrayList();
+        ConcurrentLinkedQueue<Post> to_return = new ConcurrentLinkedQueue<>();
 
         for (Post p: postMap.values()) {
             if(p.getAuthor().equals(username)){
@@ -206,6 +207,23 @@ public class SocialNetwork {
 
         int id = post_id.getAndIncrement();
         postMap.putIfAbsent(id, new Post(id, username, title, content));
+    }
+
+    public boolean postInFeed(int id_post, String username) throws UserNotExistException {
+        ArrayList<String> followingList = new ArrayList<>(followingMap.get(username));
+
+        for (String s: followingList) {
+            ConcurrentLinkedQueue<Post> authorPost = viewBlog(s);
+
+            for (Post p: authorPost) {
+                if(p.getId() == id_post){
+                    return true;
+                }
+            }
+        }
+
+
+        return false;
     }
 
     /*

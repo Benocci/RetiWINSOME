@@ -62,7 +62,7 @@ public class Wallet {
 
         }
         catch (IOException e){
-            e.printStackTrace();
+            return -1;
         }
 
         return random_value*getWalletAmount();

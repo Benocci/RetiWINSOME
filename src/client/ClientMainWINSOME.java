@@ -15,6 +15,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
@@ -335,7 +336,10 @@ public class ClientMainWINSOME {
                         followers = server.getFollowersList(username);
                     }
                     catch (Exception e){
-                        e.printStackTrace();
+                        System.out.println("Lookup alla callback non riuscita!");
+                        rewardsNotification.setClientClose();
+                        socketChannel.close();
+                        return;
                     }
                 }
 
@@ -360,11 +364,6 @@ public class ClientMainWINSOME {
         //imposto la chiusura del thread che legge i rewards:
         rewardsNotification.setClientClose();
 
-        while(!rewardsNotificationThread.isInterrupted()){
-            System.out.println("DEBUG: Interrompo il thread.");
-            rewardsNotificationThread.interrupt();//interrompo il thread
-        }
-
         try{
             if(username != null && server != null){ // se è stata fatta una exit con un client loggato tolgo dalla registrazione della callback
                 server.unregisterForCallback(username);
@@ -377,6 +376,10 @@ public class ClientMainWINSOME {
             ;
         }
 
+        while(!rewardsNotificationThread.isInterrupted()){
+            System.out.println("DEBUG: Interrompo il thread.");
+            rewardsNotificationThread.interrupt();//interrompo il thread
+        }
         socketChannel.close(); // chiudo la connessione
 
         System.out.println("Client terminato!");

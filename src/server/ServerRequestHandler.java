@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
@@ -42,6 +43,8 @@ public class ServerRequestHandler implements Runnable {
         System.out.println("Messaggio ricevuto dal client: " + channel + ": " + request);
 
         String res = requestHandler(request, channel, social, callback);
+
+        System.out.println("Messaggio inviato al client: " + res);
 
         ByteBuffer to_send = ByteBuffer.allocate(Integer.BYTES + res.length());
         to_send.putInt(res.length());
@@ -143,12 +146,12 @@ public class ServerRequestHandler implements Runnable {
                 }
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
-                ArrayList<String> list = null;
+                ArrayList<String> list = new ArrayList<>();
                 StringBuilder to_return = new StringBuilder();
 
                 switch (line_parsed.get(0)) {
                     case "following": {
-                        list = social.getFollowing(username);
+                        list.addAll(social.getFollowing(username));
                         if(list.isEmpty()){
                             to_return.append("Non segui nessuno.");
                         }
@@ -158,7 +161,7 @@ public class ServerRequestHandler implements Runnable {
                         break;
                     }
                     case "users": {
-                        list = social.listUsers(social.getUser(username));
+                        list.addAll(social.listUsers(social.getUser(username)));
                         if(list.isEmpty()){
                             to_return.append("Nessun utente con tag comuni ai tuoi.");
                         }
@@ -170,8 +173,8 @@ public class ServerRequestHandler implements Runnable {
                 }
 
 
-                if(list != null) {
-                    int size = list.size();
+                int size = list.size();
+                if(size > 0) {
                     for (String s: list){
                         if(size > 1){
                             to_return.append(s).append(", ");
@@ -189,7 +192,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "follow": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -212,7 +214,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "unfollow": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -234,16 +235,14 @@ public class ServerRequestHandler implements Runnable {
             }
             case "blog": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
-                ArrayList<Post> postView = null;
+                ConcurrentLinkedQueue<Post> postView = null;
                 try {
                     postView = social.viewBlog(username);
-                    System.out.println(username + " post view:");
                     StringBuilder to_return = new StringBuilder();
                     to_return.append("Lista dei post di " + username +  ".\n");
                     for (Post post : postView) {
@@ -280,7 +279,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "post": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -312,7 +310,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "show": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -325,7 +322,7 @@ public class ServerRequestHandler implements Runnable {
                         to_return.append("Lista dei post degli utenti seguiti:\n");
                         try {
                             for (String author : followerList) {
-                                ArrayList<Post> authorPostView = social.viewBlog(author);
+                                ConcurrentLinkedQueue<Post> authorPostView = social.viewBlog(author);
 
 
                                 for (Post post : authorPostView) {
@@ -411,7 +408,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "delete": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -455,15 +451,21 @@ public class ServerRequestHandler implements Runnable {
             }
             case "rate": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
+
+
                 try {
-                    social.ratePost(Integer.parseInt(line_parsed.get(0)), username, Integer.parseInt(line_parsed.get(1)));
-                    res = "ok";
+                    if(social.postInFeed(Integer.parseInt(line_parsed.get(0)), username)){
+                        social.ratePost(Integer.parseInt(line_parsed.get(0)), username, Integer.parseInt(line_parsed.get(1)));
+                        res = "ok";
+                    }
+                    else{
+                        res = "il post non è nel tuo feed";
+                    }
                 } catch (UserNotExistException e){
                     res = "utente non esiste";
                 } catch (SameUserException e) {
@@ -491,9 +493,15 @@ public class ServerRequestHandler implements Runnable {
                 int id_post = Integer.parseInt(line_parsed.remove(0));
                 request = request.substring(request.indexOf("\"")+1);
                 String comment_content = request.substring(0, request.indexOf("\""));
+
                 try {
-                    social.commentPost(id_post, username, comment_content);
-                    res = "ok";
+                    if(social.postInFeed(Integer.parseInt(line_parsed.get(0)), username)){
+                        social.commentPost(id_post, username, comment_content);
+                        res = "ok";
+                    }
+                    else{
+                        res = "il post non è nel tuo feed";
+                    }
                 } catch (PostNotExistException e) {
                     res = "post non esiste";
                 } catch (UserNotExistException e){
@@ -516,9 +524,15 @@ public class ServerRequestHandler implements Runnable {
                     wallet = social.getWallet(username);
 
                     if (line_parsed.size() != 0 && line_parsed.get(0).equals("btc")) {
-                        res = "Valore del wallet in bitcoin: " + wallet.getWalletinBitcoin();
+                        double walletInBTC = wallet.getWalletinBitcoin();
+                        if(walletInBTC == -1){
+                            res = "Conversione in bitcoin fallita, valore del wallet: " + wallet.getWalletAmount();
+                        }
+                        else{
+                            res = "Valore del wallet in bitcoin: " + walletInBTC;
+                        }
                     } else {
-                        res = "Walore del wallet: " + wallet.getWalletAmount();
+                        res = "Valore del wallet: " + wallet.getWalletAmount();
                     }
 
                 } catch (UserNotExistException e) {
