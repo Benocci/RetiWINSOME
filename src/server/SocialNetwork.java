@@ -62,7 +62,7 @@ public class SocialNetwork {
 
     /*
      * REQUIRES: user != null
-     * EFFECTS: ritorna un arraylist di stringe con gli username degli utenti che hanno almeno un tag in comune con user
+     * EFFECTS: ritorna una coda di stringe con gli username degli utenti che hanno almeno un tag in comune con user
      * THROWS:
      */
     public ConcurrentLinkedQueue<String> listUsers(User user){
@@ -147,13 +147,18 @@ public class SocialNetwork {
      * EFFECTS: aggiunge username ai follower di to_follow e to_follow ai seguiti di username
      * THROWS: UserNotExistException se gli utenti non sono presenti nel socialnewtok
      */
-    public void followUser(String username, String to_follow) throws UserNotExistException {
+    public void followUser(String username, String to_follow) throws UserNotExistException, AlreadyFollowerException {
         if(!users.containsKey(username) || !users.containsKey(to_follow)){
             throw new UserNotExistException();
         }
 
+        if(followingMap.get(username).contains(to_follow)){
+            throw new AlreadyFollowerException();
+        }
+
         followersMap.get(to_follow).add(username);
         followingMap.get(username).add(to_follow);
+
     }
 
     /*
@@ -162,9 +167,13 @@ public class SocialNetwork {
      * EFFECTS: rimuove username ai follower di to_unfollow e to_unfollow ai seguiti di username
      * THROWS: UserNotExistException se gli utenti non sono presenti nel socialnewtok
      */
-    public void unfollowUser(String username, String to_unfollow) throws UserNotExistException {
+    public void unfollowUser(String username, String to_unfollow) throws UserNotExistException, AlreadyFollowerException {
         if (!users.containsKey(username) || !users.containsKey(to_unfollow)) {
             throw new UserNotExistException();
+        }
+
+        if(!followingMap.get(username).contains(to_unfollow)){
+            throw new AlreadyFollowerException();
         }
 
         followersMap.get(to_unfollow).remove(username);
@@ -173,7 +182,7 @@ public class SocialNetwork {
 
     /*
      * REQUIRES: username != null
-     * EFFECTS: ritorna un arraylist con tutti i post di cui username è autore
+     * EFFECTS: ritorna una coda con tutti i post di cui username è autore
      * THROWS: UserNotExistException se username non è presente nel socialnewtok
      */
     public ConcurrentLinkedQueue<Post> viewBlog(String username) throws UserNotExistException {

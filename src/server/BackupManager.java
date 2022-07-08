@@ -10,8 +10,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BackupManager implements Runnable{
     private long backup_period = 1000;
@@ -63,12 +63,12 @@ public class BackupManager implements Runnable{
         }
 
         if(followersMap != null || followersMap.equals("")){
-            Type type = new TypeToken<ConcurrentHashMap<String, ArrayList<String>>>() {}.getType();
+            Type type = new TypeToken<ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>>() {}.getType();
             social.setFollowersMap(gson.fromJson(followersMap, type));
         }
 
         if(followingMap != null || followingMap.equals("")){
-            Type type = new TypeToken<ConcurrentHashMap<String, ArrayList<String>>>() {}.getType();
+            Type type = new TypeToken<ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>>() {}.getType();
             social.setFollowingMap(gson.fromJson(followingMap, type));
         }
 

@@ -186,7 +186,7 @@ public class ServerMainWINSOME {
                 }
             }
             catch (IOException ex){
-                System.out.println("Connessione con il client persa!");
+                System.out.println("ERRORE: Connessione con il client persa!");
                 break;
             }
         }

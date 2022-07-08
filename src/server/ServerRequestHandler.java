@@ -94,7 +94,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "login": { // richiesta di login
                 if (line_parsed.size() != 2) { // controllo sul numero di argomenti
-                    System.out.println("Errore!");
                     res = "numero argomenti";
                     break;
                 }
@@ -103,7 +102,6 @@ public class ServerRequestHandler implements Runnable {
                 String password = line_parsed.get(1);
 
                 if (ServerMainWINSOME.loggedUsers.contains(username)) {//controllo se l'utente è già loggato
-                    System.out.println("Utente già loggato");
                     res = "utente già loggato";
                     break;
                 }
@@ -111,7 +109,6 @@ public class ServerRequestHandler implements Runnable {
                 User user = social.getUser(username);
 
                 if (user == null) {
-                    System.out.println("Utente non esiste");
                     res = "utente non esiste";
                 } else {                                        // se l'utente esiste
                     if (user.getPassword().equals(password)) {  // e la sua password corrisponde loggo
@@ -180,8 +177,8 @@ public class ServerRequestHandler implements Runnable {
 
                         size--;
                     }
-                    res = to_return.toString();
                 }
+                res = to_return.toString();
 
                 break;
             }
@@ -194,11 +191,12 @@ public class ServerRequestHandler implements Runnable {
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 try {
                     social.followUser(username, line_parsed.get(0));
-                    System.out.println(username + " segue " + line_parsed.get(0));
                     callback.notifyClient(1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
                     res = "utente non esiste";
+                } catch (AlreadyFollowerException e) {
+                    res = "utente già seguito";
                 }
                 catch (RemoteException ex){
                     ex.printStackTrace();
@@ -216,10 +214,12 @@ public class ServerRequestHandler implements Runnable {
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 try {
                     social.unfollowUser(username, line_parsed.get(0));
-                    System.out.println(username + " non segue più " + line_parsed.get(0));
                     callback.notifyClient(-1,username, line_parsed.get(0));
                     res = "ok";
                 } catch (UserNotExistException e) {
+                    res = "utente non esiste";
+                } catch (AlreadyFollowerException e) {
+                    res = "utente non seguito";
                 }
                 catch (RemoteException ex){
                     ex.printStackTrace();
@@ -312,11 +312,11 @@ public class ServerRequestHandler implements Runnable {
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 switch (line_parsed.get(0)) {
                     case "feed": {
-                        ArrayList<String> followerList = social.getFollowers(username);
+                        ArrayList<String> followingList = social.getFollowing(username);
                         StringBuilder to_return = new StringBuilder();
                         to_return.append("Lista dei post degli utenti seguiti:\n");
                         try {
-                            for (String author : followerList) {
+                            for (String author : followingList) {
                                 ConcurrentLinkedQueue<Post> authorPostView = social.viewBlog(author);
 
 
@@ -364,7 +364,6 @@ public class ServerRequestHandler implements Runnable {
                     }
                     case "post": {
                         if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                            System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                             res = "utente non loggato";
                             break;
                         }
@@ -425,7 +424,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "rewin": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -474,7 +472,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "comment": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -508,7 +505,6 @@ public class ServerRequestHandler implements Runnable {
             }
             case "wallet": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    System.out.println("Utente non loggato, impossibile svolgere l'operazione.");
                     res = "utente non loggato";
                     break;
                 }
@@ -539,7 +535,6 @@ public class ServerRequestHandler implements Runnable {
                 break;
             }
             default: {
-                System.out.println("Messaggio dal client non riconosciuto!");
                 res = "messaggio non riconosciuto";
             }
 

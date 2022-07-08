@@ -110,9 +110,15 @@
     "title": "grazie a tutti",
     "content": "bello essere qui",
     "date": "Jul 7, 2022, 10:31:24 AM",
-    "votes": {},
+    "votes": {
+      "francesco": {
+        "author": "francesco",
+        "date": "Jul 8, 2022, 9:54:52 AM",
+        "rate": 1
+      }
+    },
     "rewinUsers": [],
     "comments": [],
-    "num_iteration": 1
+    "num_iteration": 2
   }
 }
