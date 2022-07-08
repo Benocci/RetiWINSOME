@@ -125,7 +125,7 @@ public class ServerMainWINSOME {
                         SocketChannel socketChannel = serverSocketChannel.accept();
                         socketChannel.configureBlocking(false);
 
-                        System.out.println("Connessione stabilita con il client: " + socketChannel.getRemoteAddress());
+                        System.out.println(" -+- Connessione stabilita con il client: " + socketChannel.getRemoteAddress());
                         socketChannel.register(selector, SelectionKey.OP_READ, null);
                     }
                     if(selectionKey.isReadable()){
@@ -151,24 +151,37 @@ public class ServerMainWINSOME {
                             throw new IOException("Connessione chiusa!");
                         }
 
-                        request.flip();
-                        String read = new String(request.array());
 
-                        request.clear();
-                        selectionKey.attach(null);
+                        if(!request.hasRemaining()){
+                            request.flip();
+                            String read = new String(request.array());
 
-                        try {
-                            socketChannel.register(selector, SelectionKey.OP_WRITE, read);
-                        } catch (ClosedChannelException e) {
-                            e.printStackTrace();
+                            threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, read, serverCallback));
+                            request.clear();
                         }
                     }
                     else if(selectionKey.isWritable()){
                         SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                        String request = (String) selectionKey.attachment();
-                        threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, request, serverCallback));
+                        ByteBuffer response = (ByteBuffer) selectionKey.attachment();
 
-                        socketChannel.register(selector, SelectionKey.OP_READ, null);
+                        if(response.hasRemaining()){
+                            socketChannel.write(response);
+                        }
+
+                        if(!response.hasRemaining()){
+                            String res = new String(response.array());
+                            if(res.contains("exit")){
+                                try {
+                                    System.out.println(" --- Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
+                                    socketChannel.close();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            else{
+                                socketChannel.register(selector, SelectionKey.OP_READ, null);
+                            }
+                        }
                     }
                 }
             }

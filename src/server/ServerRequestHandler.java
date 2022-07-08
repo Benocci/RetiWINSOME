@@ -5,6 +5,8 @@ import exception.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
@@ -40,32 +42,25 @@ public class ServerRequestHandler implements Runnable {
      */
     @Override
     public void run() {
-        System.out.println("Messaggio ricevuto dal client: " + channel + ": " + request);
+        System.out.println(" <-- Messaggio ricevuto dal client: " + channel + ": " + request);
 
         String res = requestHandler(request, channel, social, callback);
 
-        System.out.println("Messaggio inviato al client: " + res);
 
-        ByteBuffer to_send = ByteBuffer.allocate(Integer.BYTES + res.length());
-        to_send.putInt(res.length());
-        to_send.put(res.getBytes());
-        to_send.flip();
+        ByteBuffer response = ByteBuffer.allocate(res.getBytes().length + Integer.BYTES);
+        response.putInt(res.getBytes().length);
+        response.put(res.getBytes());
+        response.flip();
 
         try {
-            socketChannel.write(to_send);
-        } catch (IOException e) {
+            socketChannel.register(selector, SelectionKey.OP_WRITE, response);
+            selector.wakeup();
+        } catch (ClosedChannelException e) {
             e.printStackTrace();
         }
-        to_send.clear();
 
-        if(request.contains("exit")){
-            try {
-                System.out.println("Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
-                socketChannel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        System.out.println(" --> Messaggio inviato al client: " + channel + ": " + res);
+
     }
 
 
@@ -79,7 +74,7 @@ public class ServerRequestHandler implements Runnable {
      *          SameUserException se un utente prova a votare un suo post
      *          NoAuthorizationException se non ci sono le autorizzazioni per effettuare un operazione
      */
-    private static String requestHandler(String request, String channel, SocialNetwork social, ServerCallback callback){
+    private String requestHandler(String request, String channel, SocialNetwork social, ServerCallback callback){
         //parsing della richiesta:
         ArrayList<String> line_parsed = new ArrayList<>();
         Collections.addAll(line_parsed, request.split(" "));
@@ -89,12 +84,12 @@ public class ServerRequestHandler implements Runnable {
         switch (option) {
             case "exit": {
                 if (!ServerMainWINSOME.loggedUsers.containsKey(channel)) {
-                    res = "ok";
+                    res = "exit ok";
                     break;
                 }
 
                 ServerMainWINSOME.loggedUsers.remove(channel);
-                res = "ok";
+                res = "exit ok";
                 break;
             }
             case "login": { // richiesta di login

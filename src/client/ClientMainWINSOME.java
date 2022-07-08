@@ -357,7 +357,7 @@ public class ClientMainWINSOME {
             }
         }
         catch (IOException e){
-            e.printStackTrace();
+            System.out.println("Connessione con il server caduta, terminazione del client in corso..");
         }
         //fine del client:
 
