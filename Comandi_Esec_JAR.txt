@@ -1,0 +1,3 @@
+Da terminale rimanendo all'interno della cartella RetiWINSOME:
+-per il server: java -jar jar/serverWINSOME.jar src/configFile/configServer.json
+-per il client: java -jar jar/clientWINSOME.jar src/configFile/configClient.json
