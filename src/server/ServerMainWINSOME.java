@@ -13,6 +13,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Iterator;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -31,16 +32,18 @@ public class ServerMainWINSOME {
     public static void main(String[] args) {
         File file;
         if(args.length < 1){
-            System.out.println("Passare un file di config per il server.");
-            return;
+            System.out.println("Indicare un file di config per il server:");
+            Scanner scanner = new Scanner(System.in);
+            String tmp = scanner.nextLine();
+            file = new File(tmp);
         }
         else{
             file = new File(args[0]);
+        }
 
-            if(!file.exists()){
-                System.out.println("File di configurazione non valido, riprovare con un altro file.");
-                return;
-            }
+        if(!file.exists()){
+            System.out.println("File di configurazione \"" + file.getAbsolutePath() + "\" non esiste, riprovare con un altro file.\"");
+            return;
         }
 
         //lettura del file di config json e traduzione in classe java
@@ -50,10 +53,11 @@ public class ServerMainWINSOME {
             config = objectMapper.readValue(file, ConfigServerWINSOME.class);
         }
         catch (Exception e){
-            throw new RuntimeException("ERRORE: file di config del client -> " + e.getMessage());
+            System.out.println("File di configurazione \"" + file.getAbsolutePath() + "\" non valido, riprovare con un altro file.\"");
+            return;
         }
 
-        System.out.println("Server avviato con la configurazione data da \"" + args[0] + "\"");
+        System.out.println("Server avviato con la configurazione data da \"" + file.getAbsolutePath() + "\"");
 
         //inizializzo il socialnetwork
         socialNetwork = new SocialNetwork();
@@ -186,8 +190,13 @@ public class ServerMainWINSOME {
                 }
             }
             catch (IOException ex){
-                System.out.println("ERRORE: Connessione con il client persa!");
-                break;
+                System.out.println("ERRORE: Connessione con il client persa! Mantenere il server attivo? [si/no]");
+                Scanner scanner = new Scanner(System.in);
+
+                String continueConnection = scanner.nextLine();
+                if(!continueConnection.contains("si")){
+                    break;
+                }
             }
         }
 

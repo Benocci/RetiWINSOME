@@ -58,10 +58,10 @@ public class RewardsNotification implements Runnable{
                     datagramPacket = new DatagramPacket(to_receiveBuffer.array(), to_receiveBuffer.limit());
                     multicastSocket.receive(datagramPacket);
 
-
                     String received = new String(datagramPacket.getData(), datagramPacket.getOffset(), datagramPacket.getLength());
                     float new_rewards = Float.parseFloat(received.substring(received.indexOf(":")+1));
 
+                    //stampo e aggiorno il nuovo valore solo se è differente dal vecchio valore ricevuto
                     if(new_rewards != old_reward) {
                         System.out.println(received);
                         System.out.print("> ");

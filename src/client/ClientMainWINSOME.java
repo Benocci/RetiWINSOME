@@ -15,7 +15,6 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
@@ -23,25 +22,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class ClientMainWINSOME {
     private static String username; //stringa con username dell'utente loggato su questo client, se non loggato username = null.
-    public static ArrayList<String> followers = new ArrayList<>();
+    public static ArrayList<String> followers = new ArrayList<>(); //Arraylist contenente la lista dei nomi che seguono l'utente loggato, se username = null allora followers.isEmpty = true
 
     public static void main(String[] args) throws IOException {
 
         //validazione del file di config
         File file;
         if(args.length < 1){//se non è stato passato un file di config lo richiedo
-            System.out.println("Passare un file json di configurazione del client.");
-            return;
+            System.out.println("Indicare un file json di configurazione del client:");
+            Scanner scanner = new Scanner(System.in);
+            String tmp = scanner.nextLine();
+            file = new File(tmp);
         }
         else{//altrimenti leggo il file json passato per argomento
             file = new File(args[0]);
-
-            if(!file.exists()){
-                System.out.println("File di configurazione \"" + args[0] + "\" non valido, riprovare con un altro file.");
-                return;
-            }
         }
 
+        if(!file.exists()){
+            System.out.println("File di configurazione \"" + file.getAbsolutePath() + "\" non esiste, riprovare con un altro file.");
+            return;
+        }
 
         //lettura del file di config e conversione in oggetto java:
         ObjectMapper objectMapper = new ObjectMapper();
@@ -50,10 +50,11 @@ public class ClientMainWINSOME {
             config = objectMapper.readValue(file, ConfigClientWINSOME.class);
         }
         catch (Exception e){
-            throw new RuntimeException("Errore nella lettura del file di config: " + e.getMessage());
+            System.out.println("File di configurazione \"" + file.getAbsolutePath() + "\" non valido, riprovare con un altro file.");
+            return;
         }
 
-        //System.out.println("Client avviato con la configurazione data da \"" + args[0] + "\"");
+        System.out.println("Client avviato con la configurazione data da \"" + file.getAbsolutePath() + "\"");
 
 
         //inizializzazione della connessione con java NIO
@@ -102,9 +103,10 @@ public class ClientMainWINSOME {
         System.out.println("Connessione stabilita con il server su " + config.getServer_address() + "/" + config.getServer_port());
         System.out.println("Benvenuto su WINSOME, digitare help per la lista dei comandi.");
 
-        try {
-            boolean continueLoop = true;
-            while (continueLoop) { //ciclo principale del client
+
+        boolean continueLoop = true;
+        while (continueLoop) { //ciclo principale del client
+            try {
                 System.out.print("> ");
 
                 //leggo da standard input
@@ -165,13 +167,13 @@ public class ClientMainWINSOME {
                     System.out.println("follow <utente>                        >segui l'utente indicato<");
                     System.out.println("unfollow <utente>                      >smetti di seguire l'utente indicato<");
                     System.out.println("blog                                   >visualizza la lista dei propri post<");
-                    System.out.println("post <titolo> <contenuto>              >crea un post<");
+                    System.out.println("post \"<titolo>\" \"<contenuto>\"      >crea un post<");
                     System.out.println("show feed                              >visualizza la lista dei post del proprio feed<");
                     System.out.println("show post <id>                         >visualizza il post indicato<");
                     System.out.println("delete <idPost>                        >elimina il post indicato<");
                     System.out.println("rewin <idPost>                         >rewin del post indicato<");
                     System.out.println("rate <idPost> <vote>                   >votazione del post indicato con +1/-1<");
-                    System.out.println("comment <idPost> <testo>               >commento al post indicato<");
+                    System.out.println("comment <idPost> \"<testo>\"           >commento al post indicato<");
                     System.out.println("wallet                                 >valore del proprio portafoglio<");
                     System.out.println("wallet btc                             >valore del proprio portafoglio in Bitcoin<");
                     continue;
@@ -184,27 +186,27 @@ public class ClientMainWINSOME {
                         option.equals("blog") || option.equals("post") || option.equals("show") || option.equals("delete") ||
                         option.equals("rewin") || option.equals("rate") || option.equals("comment") || option.equals("wallet")
                 )){
-                    System.out.println("Opzione non riconosciuta, per aiuto digitare help.");
+                    System.out.println("< Opzione non riconosciuta, per aiuto digitare help.");
                     continue;
                 }
 
 
                 //serie di controlli generici per ogni comandi
                 if(option.equals("login") && line_parsed.size() != 2) { //controllo di avere il numero di argomenti corretto
-                    System.out.println("Argomenti non sufficienti, formato corretto: login <username> <password>.");
+                    System.out.println("< Argomenti non sufficienti, formato corretto: login <username> <password>.");
                     continue;
                 }
                 else if(option.equals("logout") && line_parsed.size() != 0){
-                    System.out.println("Troppi argomenti, formato corretto: logout.");
+                    System.out.println("< Troppi argomenti, formato corretto: logout.");
                     continue;
                 }
                 else if(option.equals("list")){
                     if(line_parsed.size() != 1){
-                        System.out.println("Numero argomenti errato, formato corretto: list user/followers/following.");
+                        System.out.println("< Numero argomenti errato, formato corretto: list user/followers/following.");
                         continue;
                     }
 
-                    if(line_parsed.get(0).equals("followers")){
+                    if(line_parsed.get(0).equals("followers")){ // in caso di list followers stampo la lista locale:
                         if(username != null) {
                             if (followers.isEmpty()) {
                                 System.out.println("< Non ti segue nessuno.");
@@ -228,65 +230,65 @@ public class ClientMainWINSOME {
                     }
 
                     if(! (line_parsed.get(0).equals("following") || line_parsed.get(0).equals("users"))){
-                        System.out.println("Non esiste la lista richiesta, formato corretto: list user/followers/following.");
+                        System.out.println("< Non esiste la lista richiesta, formato corretto: list user/followers/following.");
                         continue;
                     }
                 }
                 else if(option.equals("follow") && line_parsed.size() != 1){
-                    System.out.println("Numero argomenti errato, formato corretto: follow <username>.");
+                    System.out.println("< Numero argomenti errato, formato corretto: follow <username>.");
                     continue;
                 }
                 else if(option.equals("unfollow") && line_parsed.size() != 1){
-                    System.out.println("Numero argomenti errato, formato corretto: unfollow <username>.");
+                    System.out.println("< Numero argomenti errato, formato corretto: unfollow <username>.");
                     continue;
                 }
                 else if(option.equals("post")){
                     if(line_read.chars().filter(ch -> ch == '"').count() != 4){
-                        System.out.println("Sintassi del comando errata, formato corretto: post \"<titolo>\" \"<contenuto>\".");
-                        break;
+                        System.out.println("< Sintassi del comando errata, formato corretto: post \"<titolo>\" \"<contenuto>\".");
+                        continue;
                     }
                 }
                 else if(option.equals("blog") && line_parsed.size() != 0){
-                    System.out.println("Numero argomenti errato, formato corretto: blog.");
+                    System.out.println("< Numero argomenti errato, formato corretto: blog.");
                     continue;
                 }
                 else if(option.equals("show")){
                     if(line_parsed.size() < 1){
-                        System.out.println("Numero argomenti errato, formato corretto: show feed / show post <id>");
+                        System.out.println("< Numero argomenti errato, formato corretto: show feed / show post <id>");
                         continue;
                     }
 
                     if(! (line_parsed.get(0).equals("feed") || line_parsed.get(0).equals("post"))){
-                        System.out.println("Non esiste il comando richiesto, formato corretto: show feed / show post <id>.");
+                        System.out.println("< Non esiste il comando richiesto, formato corretto: show feed / show post <id>.");
                         continue;
                     }
                 }
                 else if(option.equals("delete") && line_parsed.size() != 1){
-                    System.out.println("Numero argomenti errato, formato corretto: delete <idPost>.");
+                    System.out.println("< Numero argomenti errato, formato corretto: delete <idPost>.");
                     continue;
                 }
                 else if(option.equals("comment")){
                     if(line_read.chars().filter(ch -> ch == '"').count() != 2){
-                        System.out.println("Sintassi del comando errata, formato corretto: comment <idPost> \"<contenuto>\".");
-                        break;
+                        System.out.println("< Sintassi del comando errata, formato corretto: comment <idPost> \"<contenuto>\".");
+                        continue;
                     }
                 }
                 else if(option.equals("rewin") && line_parsed.size() != 1){
-                    System.out.println("Numero argomenti errato, formato corretto: rewin <idPost>.");
+                    System.out.println("< Numero argomenti errato, formato corretto: rewin <idPost>.");
                     continue;
                 }
                 else if(option.equals("rate") && line_parsed.size() != 2){
-                    System.out.println("Numero argomenti errato, formato corretto: rate <idPost> <vote>.");
+                    System.out.println("< Numero argomenti errato, formato corretto: rate <idPost> <vote>.");
                     continue;
                 }
                 else if(option.equals("wallet")){
                     if(line_parsed.size() == 1 && !line_parsed.get(0).equals("btc")){
-                        System.out.println("Non esiste il comando richiesto, formato corretto: wallet / wallet btc.");
+                        System.out.println("< Non esiste il comando richiesto, formato corretto: wallet / wallet btc.");
                         continue;
                     }
 
                     if(line_parsed.size() >= 2){
-                        System.out.println("Numero argomenti errato, formato corretto: wallet / wallet btc.");
+                        System.out.println("< Numero argomenti errato, formato corretto: wallet / wallet btc.");
                         continue;
                     }
                 }
@@ -297,6 +299,7 @@ public class ClientMainWINSOME {
 
                 // invio del messaggio al server con java NIO:
 
+                //System.out.println("Stai per mandare: " + line_read + ", lungo: " + line_read.length());
                 //creo il buffer di byte:
                 ByteBuffer request = ByteBuffer.wrap(new byte[line_read.length()+Integer.BYTES]);
                 request.putInt(line_read.length());
@@ -353,12 +356,23 @@ public class ClientMainWINSOME {
                     username = null;
                     followers = new ArrayList<>();
                 }
+            }
+            catch (IOException e){// in caso di chiusura anomala della connessione chiedo se ritentare con la connessione:
+                socketChannel.close();
+                System.out.println("Connessione con il server caduta, tentare la riconnessione? [si/no]");
+                Scanner scanner = new Scanner(System.in);
 
+                String reConnection = scanner.nextLine();
+
+                if(reConnection.contains("no")){ // chiudo la connessione e termino il client
+                    break;
+                }
+                else{//riapro la connessione e riprovo la connect
+                    socketChannel = SocketChannel.open();
+                }
             }
         }
-        catch (IOException e){
-            System.out.println("Connessione con il server caduta, terminazione del client in corso..");
-        }
+
         //fine del client:
 
         //imposto la chiusura del thread che legge i rewards:
@@ -373,11 +387,10 @@ public class ClientMainWINSOME {
                 UnicastRemoteObject.unexportObject(callbackObj, false);
             }
         }catch (RemoteException ignore){
-            ;
+            System.out.println("RemoteException nella callback!");
         }
 
         while(!rewardsNotificationThread.isInterrupted()){
-            System.out.println("DEBUG: Interrompo il thread.");
             rewardsNotificationThread.interrupt();//interrompo il thread
         }
         socketChannel.close(); // chiudo la connessione

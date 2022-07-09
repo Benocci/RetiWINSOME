@@ -244,7 +244,7 @@ public class SocialNetwork {
      *          VoteNotValidException se il voto non è -1/+1
      *          SameUserException se username è uguale all'autore del post
      */
-    public void ratePost(int id_post, String username, int vote_value) throws UserNotExistException, PostNotExistException, VoteNotValidException, SameUserException {
+    public boolean ratePost(int id_post, String username, int vote_value) throws UserNotExistException, PostNotExistException, VoteNotValidException, SameUserException {
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
@@ -255,7 +255,13 @@ public class SocialNetwork {
             throw new VoteNotValidException();
         }
 
-        postMap.get(id_post).addVote(username, vote_value);
+        if(postMap.get(id_post).getVotes().containsKey(username)){
+            return false;
+        }
+        else{
+            postMap.get(id_post).addVote(username, vote_value);
+            return true;
+        }
     }
 
     /*

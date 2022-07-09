@@ -14,7 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class BackupManager implements Runnable{
-    private long backup_period = 1000;
+    private final long backup_period = 1000;
+    private final String directory = "src/backupServerState";
+    private final String user_path = "usersBackup.json";
+    private final String follower_path = "followerBackup.json";
+    private final String following_path = "followedBackup.json";
+    private final String post_path = "postBackup.json";
     private SocialNetwork social;
     private final Gson gson;
     private Boolean stopBackup;
@@ -40,10 +45,10 @@ public class BackupManager implements Runnable{
                 return;
             }
 
-            saveInJson(".\\src\\backupServerState\\usersBackup.json", social.getUsers());
-            saveInJson(".\\src\\backupServerState\\followerBackup.json", social.getFollowersMap());
-            saveInJson(".\\src\\backupServerState\\followedBackup.json", social.getFollowingMap());
-            saveInJson(".\\src\\backupServerState\\postBackup.json", social.getPostMap());
+            saveInJson(directory + "/" + user_path, social.getUsers());
+            saveInJson(directory + "/" + follower_path, social.getFollowersMap());
+            saveInJson(directory + "/" + following_path, social.getFollowingMap());
+            saveInJson(directory + "/" + post_path, social.getPostMap());
         }
     }
 
@@ -52,10 +57,10 @@ public class BackupManager implements Runnable{
     }
 
     public void loadBackup(){
-        String usersMap = readJson(".\\src\\backupServerState\\usersBackup.json");
-        String followersMap = readJson(".\\src\\backupServerState\\followerBackup.json");
-        String followingMap = readJson(".\\src\\backupServerState\\followedBackup.json");
-        String postMap = readJson(".\\src\\backupServerState\\postBackup.json");
+        String usersMap = readJson(directory + "/" + user_path);
+        String followersMap = readJson(directory + "/" + follower_path);
+        String followingMap = readJson(directory + "/" + following_path);
+        String postMap = readJson(directory + "/" + post_path);
 
         if(usersMap != null || usersMap.equals("")){
             Type type = new TypeToken<ConcurrentHashMap<String, User>>() {}.getType();
@@ -85,7 +90,7 @@ public class BackupManager implements Runnable{
             source = Channels.newChannel(new FileInputStream(path));
         }
         catch (FileNotFoundException e){
-            new File(".\\src\\backupServerState\\").mkdirs();
+            new File(directory).mkdirs();
 
             File file = new File(path);
             try{

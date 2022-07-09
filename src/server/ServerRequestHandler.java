@@ -453,8 +453,12 @@ public class ServerRequestHandler implements Runnable {
 
                 try {
                     if(social.postInFeed(Integer.parseInt(line_parsed.get(0)), username)){
-                        social.ratePost(Integer.parseInt(line_parsed.get(0)), username, Integer.parseInt(line_parsed.get(1)));
-                        res = "ok";
+                        if(social.ratePost(Integer.parseInt(line_parsed.get(0)), username, Integer.parseInt(line_parsed.get(1)))){
+                            res = "ok";
+                        }
+                        else {
+                            res = "hai già votato questo post";
+                        }
                     }
                     else{
                         res = "il post non è nel tuo feed";
@@ -487,7 +491,7 @@ public class ServerRequestHandler implements Runnable {
                 String comment_content = request.substring(0, request.indexOf("\""));
 
                 try {
-                    if(social.postInFeed(Integer.parseInt(line_parsed.get(0)), username)){
+                    if(social.postInFeed(id_post, username)){
                         social.commentPost(id_post, username, comment_content);
                         res = "ok";
                     }
