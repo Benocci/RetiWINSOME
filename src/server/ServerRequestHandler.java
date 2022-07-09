@@ -260,7 +260,7 @@ public class ServerRequestHandler implements Runnable {
                         //stampo i commenti:
                         for (Comment c: post.getComments()) {
                             to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
-                            to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                            to_return.append(", contenuto \"" + c.getContent() + "\".");
                         }
 
                     }
@@ -312,11 +312,16 @@ public class ServerRequestHandler implements Runnable {
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 switch (line_parsed.get(0)) {
                     case "feed": {
-                        ArrayList<String> followingList = social.getFollowing(username);
+                        ArrayList<String> feedUsersList = social.getFollowing(username);
+                        for (String s: social.listUsers(social.getUser(username))) {
+                            if(!feedUsersList.contains(s)){
+                                feedUsersList.add(s);
+                            }
+                        }
                         StringBuilder to_return = new StringBuilder();
-                        to_return.append("Lista dei post degli utenti seguiti:\n");
+                        to_return.append("Lista dei post del tuo feed:\n");
                         try {
-                            for (String author : followingList) {
+                            for (String author : feedUsersList) {
                                 ConcurrentLinkedQueue<Post> authorPostView = social.viewBlog(author);
 
 
@@ -348,7 +353,7 @@ public class ServerRequestHandler implements Runnable {
                                     to_return.append(" * Numero commenti: " + post.getComments().size() + ":\n");
                                     for (Comment c: post.getComments()) {
                                         to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
-                                        to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                                        to_return.append(", contenuto \"" + c.getContent() + "\".");
                                     }
                                 }
 
@@ -386,7 +391,7 @@ public class ServerRequestHandler implements Runnable {
                             to_return.append("* Numero commenti: " + post.getComments().size() + ":\n");
                             for (Comment c: post.getComments()) {
                                 to_return.append("  * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
-                                to_return.append(", contenuto \"" + c.getContent() + "\".\n");
+                                to_return.append(", contenuto \"" + c.getContent() + "\".");
                             }
 
                             res = to_return.toString();

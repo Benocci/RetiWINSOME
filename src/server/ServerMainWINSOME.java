@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.rmi.NoSuchObjectException;
@@ -104,103 +105,104 @@ public class ServerMainWINSOME {
         //inizializzazione del sistema java NIO su cui girerà la comunicazione tcp principale (multiplexing)
         Selector selector = null;
         try{
-            ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-            serverSocketChannel.socket().bind(new InetSocketAddress(config.getServer_port()));
-            serverSocketChannel.configureBlocking(false);
+            ServerSocketChannel s = ServerSocketChannel.open();
+            s.socket().bind(new InetSocketAddress(config.getServer_port()));
+            s.configureBlocking(false);
             selector = Selector.open();
-            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-        }
-        catch (IOException e){
-            e.printStackTrace();
-            return;
-        }
+            s.register(selector, SelectionKey.OP_ACCEPT);
 
-        while (true){
-            try {
+            boolean continueLoop = true;
+            while (continueLoop){
                 if (selector.select() == 0) continue;
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
                 Iterator<SelectionKey> selectionKeyIterator = selectionKeys.iterator();
                 while (selectionKeyIterator.hasNext()) {
                     SelectionKey selectionKey = selectionKeyIterator.next();
                     selectionKeyIterator.remove();
+                    try{
 
-                    if (selectionKey.isAcceptable()) {
-                        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
-                        SocketChannel socketChannel = serverSocketChannel.accept();
-                        socketChannel.configureBlocking(false);
+                        if (selectionKey.isAcceptable()) {
+                            ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
+                            SocketChannel socketChannel = serverSocketChannel.accept();
+                            socketChannel.configureBlocking(false);
 
-                        System.out.println(" -+- Connessione stabilita con il client: " + socketChannel.getRemoteAddress());
-                        socketChannel.register(selector, SelectionKey.OP_READ, null);
-                    }
-                    if(selectionKey.isReadable()){
-                        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                        socketChannel.configureBlocking(false);
-
-                        ByteBuffer request;
-                        if(selectionKey.attachment() == null){
-                            ByteBuffer request_lenght = ByteBuffer.allocate(Integer.BYTES);
-                            int nread = socketChannel.read(request_lenght);
-                            assert (nread == Integer.BYTES);
-                            request_lenght.flip();
-                            int msgLen = request_lenght.getInt();
-
-                            request = ByteBuffer.allocate(msgLen);
-                            selectionKey.attach(request);
+                            System.out.println(" -+- Connessione stabilita con il client: " + socketChannel.getRemoteAddress());
+                            socketChannel.register(selector, SelectionKey.OP_READ, null);
                         }
+                        if(selectionKey.isReadable()){
+                            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                            socketChannel.configureBlocking(false);
 
-                        request = (ByteBuffer) selectionKey.attachment();
-                        int readBytes = socketChannel.read(request);
-                        if(readBytes < 0){
-                            socketChannel.close();
-                            throw new IOException("Connessione chiusa!");
+                            ByteBuffer request;
+                            if(selectionKey.attachment() == null){
+                                ByteBuffer request_lenght = ByteBuffer.allocate(Integer.BYTES);
+                                int nread = socketChannel.read(request_lenght);
+                                assert (nread == Integer.BYTES);
+                                request_lenght.flip();
+                                int msgLen = request_lenght.getInt();
+
+                                request = ByteBuffer.allocate(msgLen);
+                                selectionKey.attach(request);
+                            }
+
+                            request = (ByteBuffer) selectionKey.attachment();
+                            int readBytes = socketChannel.read(request);
+                            if(readBytes < 0){
+                                socketChannel.close();
+                                throw new IOException("Connessione chiusa!");
+                            }
+
+
+                            if(!request.hasRemaining()){
+                                request.flip();
+                                String read = new String(request.array());
+
+                                threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, read, serverCallback));
+                                request.clear();
+                            }
                         }
+                        else if(selectionKey.isWritable()) {
+                            SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+                            ByteBuffer response = (ByteBuffer) selectionKey.attachment();
 
+                            if (response.hasRemaining()) {
+                                socketChannel.write(response);
+                            }
 
-                        if(!request.hasRemaining()){
-                            request.flip();
-                            String read = new String(request.array());
-
-                            threadPool.execute(new ServerRequestHandler(socialNetwork, socketChannel.getRemoteAddress().toString(), socketChannel, selector, read, serverCallback));
-                            request.clear();
-                        }
-                    }
-                    else if(selectionKey.isWritable()){
-                        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
-                        ByteBuffer response = (ByteBuffer) selectionKey.attachment();
-
-                        if(response.hasRemaining()){
-                            socketChannel.write(response);
-                        }
-
-                        if(!response.hasRemaining()){
-                            String res = new String(response.array());
-                            if(res.contains("exit")){
-                                try {
-                                    System.out.println(" --- Client " + socketChannel.getRemoteAddress()  + " disconnesso.");
-                                    socketChannel.close();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                            if (!response.hasRemaining()) {
+                                String res = new String(response.array());
+                                if (res.contains("exit")) {
+                                    try {
+                                        System.out.println(" --- Client " + socketChannel.getRemoteAddress() + " disconnesso.");
+                                        socketChannel.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                } else {
+                                    socketChannel.register(selector, SelectionKey.OP_READ, null);
                                 }
                             }
-                            else{
-                                socketChannel.register(selector, SelectionKey.OP_READ, null);
-                            }
                         }
+                    }catch (IOException | BufferUnderflowException ex){
+                        SocketChannel socketChannel = (SocketChannel) selectionKey.channel();
+
+                        if(socketChannel.isOpen()){
+                            loggedUsers.remove(socketChannel.getRemoteAddress().toString());
+                            selectionKey.channel().close();
+                        }
+                        selectionKey.cancel();
                     }
                 }
             }
-            catch (IOException ex){
-                System.out.println("ERRORE: Connessione con il client persa! Mantenere il server attivo? [si/no]");
-                Scanner scanner = new Scanner(System.in);
 
-                String continueConnection = scanner.nextLine();
-                if(!continueConnection.contains("si")){
-                    break;
-                }
-            }
+        }
+        catch (IOException e){
+            e.printStackTrace();
+            return;
         }
 
         threadPool.shutdown();
+
         try {
             if(!threadPool.awaitTermination(3, TimeUnit.SECONDS)){
                 threadPool.shutdownNow();
