@@ -10,19 +10,20 @@ import java.util.ArrayList;
 public class RegistrationRMI implements RegistrationRMIInterface{
 
     @Override
-    public void register(String username, String password, ArrayList<String> tags) throws RemoteException {
+    public boolean register(String username, String password, ArrayList<String> tags) throws RemoteException {
         SocialNetwork socialNetwork = ServerMainWINSOME.socialNetwork;
 
         String user = username.toLowerCase();
 
         if(socialNetwork.userExist(user)){
-            System.out.println("Utente già presente!");
-            return;
+            //System.out.println("Utente già presente!");
+            return false;
         }
 
         socialNetwork.addUser(new User(user, password, tags));
 
-        System.out.println("Utente " + user + " aggiunto");
+        //System.out.println("Utente " + user + " aggiunto");
+        return true;
     }
 
 }

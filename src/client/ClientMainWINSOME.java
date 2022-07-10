@@ -124,12 +124,12 @@ public class ClientMainWINSOME {
 
                 if(option.equals("register")){//caso comando = register
                     if (line_parsed.size() <= 2 || line_parsed.size() > 7) { //controllo di avere il numero di argomenti corretto
-                        System.out.println("Numero argomenti errato, per aiuto digitare help.");
+                        System.out.println("< Numero argomenti errato, per aiuto digitare help.");
                         continue;
                     }
 
                     if(username != null){ // controllo se il client non è già loggato sul server
-                        System.out.println("Non puoi registrare un nuovo utente mentre sei loggato!");
+                        System.out.println("< Non puoi registrare un nuovo utente mentre sei loggato!");
                         continue;
                     }
 
@@ -148,9 +148,12 @@ public class ClientMainWINSOME {
                     }
 
                     //chiamata RMI per la ricezione di eventi di follow
-                    registrationRMI.register(line_parsed.get(0), line_parsed.get(1), tags);
-
-                    System.out.println("< " + line_parsed.get(0) + " benvenuto su WINSOME!");
+                    if(registrationRMI.register(line_parsed.get(0), line_parsed.get(1), tags)){
+                        System.out.println("< " + line_parsed.get(0) + " benvenuto su WINSOME!");
+                    }
+                    else {
+                        System.out.println("< Nome utente già preso, scegline un altro");
+                    }
 
                     continue;
                 }

@@ -397,6 +397,8 @@ public class ServerRequestHandler implements Runnable {
                             res = to_return.toString();
                         } catch (PostNotExistException e) {
                             res = "post non esiste";
+                        } catch (NumberFormatException e){
+                            res = "id_post deve essre un intero";
                         }
 
                         break;
@@ -424,6 +426,8 @@ public class ServerRequestHandler implements Runnable {
                     res = "post non esiste";
                 }catch(NoAuthorizationException e) {
                     res = "non hai l'autorizzazione";
+                } catch (NumberFormatException e){
+                    res = "id_post deve essre un intero";
                 }
 
                 break;
@@ -444,6 +448,8 @@ public class ServerRequestHandler implements Runnable {
                     res = "voto ad un tuo post";
                 } catch (UserNotExistException e) {
                     res = "utente non esiste";
+                } catch (NumberFormatException e){
+                    res = "id_post deve essre un intero";
                 }
 
                 break;
@@ -475,8 +481,10 @@ public class ServerRequestHandler implements Runnable {
                     res = "voto ad un tuo post";
                 } catch (VoteNotValidException e){
                     res = "voto non valido";
-                }catch(PostNotExistException e) {
+                } catch(PostNotExistException e) {
                     res = "post non esiste";
+                } catch (NumberFormatException e){
+                    res = "id_post deve essre un intero";
                 }
                 break;
             }
@@ -492,7 +500,13 @@ public class ServerRequestHandler implements Runnable {
                 }
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
-                int id_post = Integer.parseInt(line_parsed.remove(0));
+                int id_post;
+                try{
+                    id_post = Integer.parseInt(line_parsed.remove(0));
+                } catch (NumberFormatException e){
+                    res = "id_post deve essre un intero";
+                    break;
+                }
                 request = request.substring(request.indexOf("\"")+1);
                 String comment_content = request.substring(0, request.indexOf("\""));
 
