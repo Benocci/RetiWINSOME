@@ -416,6 +416,7 @@ public class ServerRequestHandler implements Runnable {
                     Post post = social.getPost(Integer.parseInt(line_parsed.get(0)));
                     if (username.equals(post.getAuthor())) {
                         social.removePost(Integer.parseInt(line_parsed.get(0)), username);
+                        res = "ok";
                     } else {
                         res = "Devi essere l'autore per eliminare un post!";
                     }

@@ -63,7 +63,7 @@ public class RewardsCalculation implements Runnable{
 
                     if(total_reward != 0){
                         String to_send = "Reward totale:" + total_reward;
-                        System.out.println("INVIO: " + to_send);
+                        //System.out.println("DEBUG (invio reward): " + to_send);
 
                         InetAddress clientAddress = InetAddress.getByName(config.getMulticast_address());
                         //invio la lunghezza della stringa contenente il reward

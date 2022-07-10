@@ -5,7 +5,9 @@
   "denise": [
     "francesco"
   ],
-  "mario": [],
+  "mario": [
+    "francesco"
+  ],
   "francesco": [
     "ivan",
     "mario",

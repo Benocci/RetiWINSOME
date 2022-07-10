@@ -1,21 +1,4 @@
 {
-  "0": {
-    "id": 0,
-    "author": "francesco",
-    "title": "primo post",
-    "content": "sono il primo post",
-    "date": "Jun 23, 2022, 5:00:29 PM",
-    "votes": {
-      "ivan": {
-        "author": "ivan",
-        "date": "Jun 23, 2022, 5:15:09 PM",
-        "rate": 1
-      }
-    },
-    "rewinUsers": [],
-    "comments": [],
-    "num_iteration": 2
-  },
   "1": {
     "id": 1,
     "author": "denise",
@@ -159,5 +142,16 @@
       }
     ],
     "num_iteration": 4
+  },
+  "8": {
+    "id": 8,
+    "author": "francesco",
+    "title": "prova123",
+    "content": "prova prova",
+    "date": "Jul 10, 2022, 11:41:36 AM",
+    "votes": {},
+    "rewinUsers": [],
+    "comments": [],
+    "num_iteration": 1
   }
 }

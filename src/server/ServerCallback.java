@@ -50,6 +50,12 @@ public class ServerCallback extends RemoteServer implements ServerCallbackInterf
         }
     }
 
+    /*
+     * REQUIRES:
+     * MODIFIES:
+     * EFFECTS:
+     * THROWS:
+     */
     @Override
     public ArrayList<String> getFollowersList(String username) throws RemoteException {
         SocialNetwork socialNetwork = ServerMainWINSOME.socialNetwork;
