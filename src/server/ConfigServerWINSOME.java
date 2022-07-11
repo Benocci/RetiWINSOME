@@ -11,8 +11,9 @@ public class ConfigServerWINSOME {
     private String rmi_callback_name;
     private int rmi_callback_port;
     private int rewards_timeout;
+    private float author_percentual;
 
-    public ConfigServerWINSOME(String server_address, int server_port, String rmi_registration_name, int rmi_registration_port, String multicast_address, int multicast_port, String rmi_callback_name, int rmi_callback_port, int rewards_timeout) {
+    public ConfigServerWINSOME(String server_address, int server_port, String rmi_registration_name, int rmi_registration_port, String multicast_address, int multicast_port, String rmi_callback_name, int rmi_callback_port, int rewards_timeout, float author_percentual) {
         this.server_address = server_address;
         this.server_port = server_port;
         this.rmi_registration_name = rmi_registration_name;
@@ -22,6 +23,7 @@ public class ConfigServerWINSOME {
         this.rmi_callback_name = rmi_callback_name;
         this.rmi_callback_port = rmi_callback_port;
         this.rewards_timeout = rewards_timeout;
+        this.author_percentual = author_percentual;
     }
 
     public ConfigServerWINSOME(){
@@ -62,5 +64,9 @@ public class ConfigServerWINSOME {
 
     public int getRewards_timeout() {
         return rewards_timeout;
+    }
+
+    public float getAuthor_percentual() {
+        return author_percentual;
     }
 }

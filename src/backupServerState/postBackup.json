@@ -15,8 +15,14 @@
     "rewinUsers": [
       "francesco"
     ],
-    "comments": [],
-    "num_iteration": 2
+    "comments": [
+      {
+        "author": "francesco",
+        "content": "provo il wallet",
+        "date": "Jul 11, 2022, 6:59:12 PM"
+      }
+    ],
+    "num_iteration": 3
   },
   "2": {
     "id": 2,

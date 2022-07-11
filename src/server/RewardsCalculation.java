@@ -12,12 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /*
  *  AUTORE: FRANCESCO BENOCCI matricola 602495 UNIPI
- *  OVERVIEW:
+ *  OVERVIEW: classe Runnable che implemeta il calcolo dei profitti degli utenti per ogni post
  */
 public class RewardsCalculation implements Runnable{
     ConfigServerWINSOME config;
     SocialNetwork social;
-    int rewards_period = 10000;
     Date last_calculation;
 
     private Boolean continueLoop = true;
@@ -29,39 +28,44 @@ public class RewardsCalculation implements Runnable{
     }
 
     /*
-     * REQUIRES:
      * MODIFIES:
-     * EFFECTS:
-     * THROWS:
+     * EFFECTS: metodo run che cicla in maniera continua inviando in caso di cambiamento del total rewards in multicast il valore
      */
     @Override
     public void run() {
         try ( DatagramSocket datagramSocketServer = new DatagramSocket(6800) ){
             DatagramPacket datagramPacket;
-
-            ConcurrentHashMap<Integer, Post> postMap;
+            ConcurrentHashMap<Integer, Post> postMap; //mappa in cui inserisco i post su cui valutare i rewards
 
             while(continueLoop){
-                postMap = social.getPostMap();
-                double reward, total_reward = 0;
+                postMap = social.getPostMap();   // prendo la mappa completa dei post presenti nel social
+                double reward, total_reward = 0; // inizializzo ad ogni iterazione i valori di reward e total reward a zero
 
                 try{
-                    Thread.sleep(rewards_period);
+                    Thread.sleep(config.getRewards_timeout()); //il calcolo viene fatto ad intervalli fissati da un valore prestabilito
                 }
                 catch (InterruptedException ignore){
-                    ;
+                    if(!continueLoop){
+                        break;
+                    }
                 }
 
-                if(postMap.size() != 0){
+                if(postMap.size() != 0){ //se non ci sono post evito calcoli di ogni tipo
 
-                    for(Post p: postMap.values()) {
-                        if(p.hadChange(last_calculation)){
-                            reward = profitCalculation(p);
-                            total_reward += reward;
+                    for(Post p: postMap.values()) {         // per ogni post
+                        if(p.hadChange(last_calculation)){  // che è stato modificato dopo l'ultimo aggiornamento
+                            try{
+                                reward = profitCalculation(p);  // calcolo il profitto generato
+                            }
+                            catch (UserNotExistException ex){
+                                System.out.println("Errore nel calcolo del rewars, l'utente non esiste!");
+                                continue;
+                            }
+                            total_reward += reward;         // lo sommo al profitto totale
                         }
                     }
 
-                    if(total_reward != 0){
+                    if(total_reward != 0){ // se il profitto totale è cambiato allora invia in multicast una stringa contenente tale valore
                         String to_send = "Reward totale:" + total_reward;
                         //System.out.println("DEBUG (invio reward): " + to_send);
 
@@ -85,10 +89,7 @@ public class RewardsCalculation implements Runnable{
 
 
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (UserNotExistException ex){
-            System.out.println("Errore nel calcolo del rewars, l'utente non esiste!");
+            System.out.println("Errore nel calcolo del rewards, servizio non più in uso..");
         }
 
     }
@@ -104,6 +105,7 @@ public class RewardsCalculation implements Runnable{
     /*
      * REQUIRES: post != null
      * EFFECTS: calcola il profitto del singolo post passato come argomento
+     * THROWS: UserNotExistException
      */
     private double profitCalculation(Post post) throws UserNotExistException {
         double profit = 0;
@@ -152,28 +154,21 @@ public class RewardsCalculation implements Runnable{
         }
         comment_valutation++;
 
-        /*
-        System.out.println("Campi della funzione del profitto:");
-        System.out.println("-like tot -> " + like_valutation + " in log: " + Math.log(like_valutation));
-        System.out.println("-comments tot -> " + comment_valutation + " in log: " + Math.log(comment_valutation));
-        System.out.println("-num interazioni -> " + n_iter);
-        */
-
+        // applica la formula
         profit = (Math.log(like_valutation)+Math.log(comment_valutation))/n_iter;
-        //System.out.println("Profitto per il post num " + post.getId() + " di " + post.getAuthor() + ": " + profit);
 
-        if(profit != 0){
-            social.getWallet(post.getAuthor()).addTransaction(profit*0.7);
+        if(profit != 0){ // se il post ha generato profitto
+            social.getWallet(post.getAuthor()).addTransaction(profit*(config.getAuthor_percentual()/100)); //invio la percentuale del profitto all'autore del post
 
+            //creo un hashset con tutti i curatori del post:
             HashSet<String> voting_and_commenting_users = new HashSet<>();
             voting_and_commenting_users.addAll(username_voting_map.keySet());
             voting_and_commenting_users.addAll(username_commenting_map.keySet());
-
             voting_and_commenting_users.remove(post.getAuthor());
 
             if(voting_and_commenting_users.size() != 0){
-                double curators_rewards = profit*0.3/voting_and_commenting_users.size();
-
+                //divido la percentuale della ricompensa a tutti i curatori
+                double curators_rewards = profit*((100-config.getAuthor_percentual())/100)/voting_and_commenting_users.size();
                 for (String s: voting_and_commenting_users) {
                     social.getWallet(s).addTransaction(curators_rewards);
                 }

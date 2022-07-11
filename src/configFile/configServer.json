@@ -7,5 +7,6 @@
   "multicast_port" : "6789",
   "rmi_callback_name" : "CALLBACK-NAME",
   "rmi_callback_port" : "5555",
-  "rewards_timeout" : "5000"
+  "rewards_timeout" : "10000",
+  "author_percentual" : "70"
 }
