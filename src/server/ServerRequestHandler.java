@@ -150,35 +150,85 @@ public class ServerRequestHandler implements Runnable {
                         else{
                             to_return.append("Lista seguiti: ");
                         }
+
+                        int size = list.size();
+                        if(size > 0) {
+                            for (String s: list){
+                                if(size > 1){
+                                    to_return.append(s).append(", ");
+                                }
+                                else{
+                                    to_return.append(s).append(".");
+                                }
+
+                                size--;
+                            }
+                        }
+                        res = to_return.toString();
                         break;
                     }
                     case "users": {
-                        list.addAll(social.listUsers(social.getUser(username)));
+                        User user = social.getUser(username);
+                        list.addAll(social.listUsers(user));
+
+
+
                         if(list.isEmpty()){
-                            to_return.append("Nessun utente con tag comuni ai tuoi.");
+                            to_return.append("Nessun utente con tag comuni ai tuoi [");
+                            int size = user.getTags().size();
+                            for (String s: user.getTags()) {
+                                if(size > 1){
+                                    to_return.append(s).append(", ");
+                                }
+                                else{
+                                    to_return.append(s).append("].");
+                                }
+
+                                size--;
+                            }
                         }
                         else{
-                            to_return.append("Lista utenti con tag comuni: ");
+                            to_return.append("Lista utenti con tag comuni ai tuoi [");
+                            int size = user.getTags().size();
+                            for (String s: user.getTags()) {
+                                if(size > 1){
+                                    to_return.append(s).append(", ");
+                                }
+                                else{
+                                    to_return.append(s).append("]:\n");
+                                }
+
+                                size--;
+                            }
+
+                            int size_list = list.size();
+                            for (String s: list){
+                                to_return.append(" * ").append(s).append(" con i tag: ");
+                                User user_tmp = social.getUser(s);
+                                int size_tmp = user_tmp.getTags().size();
+                                for (String st: user_tmp.getTags()) {
+                                    if(size_tmp > 1){
+                                        to_return.append(st).append(", ");
+                                    }
+                                    else{
+                                        to_return.append(st).append(".");
+                                    }
+
+                                    size_tmp--;
+                                }
+
+                                if(size_list > 1){
+                                    to_return.append("\n");
+                                }
+
+                                size_list--;
+                            }
                         }
+                        res = to_return.toString();
+
                         break;
                     }
                 }
-
-
-                int size = list.size();
-                if(size > 0) {
-                    for (String s: list){
-                        if(size > 1){
-                            to_return.append(s).append(", ");
-                        }
-                        else{
-                            to_return.append(s).append(".");
-                        }
-
-                        size--;
-                    }
-                }
-                res = to_return.toString();
 
                 break;
             }
@@ -239,12 +289,13 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     postView = social.viewBlog(username);
                     StringBuilder to_return = new StringBuilder();
-                    to_return.append("Lista dei post di " + username +  ".\n");
+                    to_return.append("Lista dei post di " + username +  ":\n");
                     for (Post post : postView) {
+                        to_return.append(" ----------------------------------------------------------------------\n");
+                        to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                         if(!post.getAuthor().equals(username)){
                             to_return.append(" * Rewin da " + post.getAuthor() + " del post:\n");
                         }
-                        to_return.append(" * Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                         to_return.append(" * Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                         to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
                         //stampo i voti:
@@ -260,10 +311,11 @@ public class ServerRequestHandler implements Runnable {
                         //stampo i commenti:
                         for (Comment c: post.getComments()) {
                             to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
-                            to_return.append(", contenuto \"" + c.getContent() + "\".");
+                            to_return.append(", contenuto \"" + c.getContent() + "\".\n");
                         }
 
                     }
+                    to_return.append(" ----------------------------------------------------------------------");
                     res = to_return.toString();
                 } catch (UserNotExistException e) {
                     e.printStackTrace();
@@ -321,11 +373,22 @@ public class ServerRequestHandler implements Runnable {
                         StringBuilder to_return = new StringBuilder();
                         to_return.append("Lista dei post del tuo feed:\n");
                         try {
+                            ArrayList<Post> post_added = new ArrayList<>();
                             for (String author : feedUsersList) {
+                                if(author.equals(username)){
+                                    continue;
+                                }
                                 ConcurrentLinkedQueue<Post> authorPostView = social.viewBlog(author);
 
 
                                 for (Post post : authorPostView) {
+                                    if(post_added.contains(post)){
+                                        continue;
+                                    }
+                                    else{
+                                        post_added.add(post);
+                                    }
+                                    to_return.append(" ----------------------------------------------------------------------\n");
                                     to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                                     to_return.append(" * Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                                     int size = post.getRewinUsers().size();
@@ -353,12 +416,12 @@ public class ServerRequestHandler implements Runnable {
                                     to_return.append(" * Numero commenti: " + post.getComments().size() + ":\n");
                                     for (Comment c: post.getComments()) {
                                         to_return.append("   * Commento di " + c.getAuthor() + " in data " + post.getDate().toString());
-                                        to_return.append(", contenuto \"" + c.getContent() + "\".");
+                                        to_return.append(", contenuto \"" + c.getContent() + "\".\n");
                                     }
                                 }
 
                             }
-
+                            to_return.append(" ----------------------------------------------------------------------");
                             res = to_return.toString();
                         } catch (UserNotExistException e) {
                             e.printStackTrace();
@@ -376,8 +439,14 @@ public class ServerRequestHandler implements Runnable {
                         try {
                             Post post = social.getPost(Integer.parseInt(line_parsed.get(1)));
 
+
+                            if(!post.getAuthor().equals(username) && !social.postInFeed(post.getId(), username) && !post.getRewinUsers().contains(username)){
+                                res = "il post non è tuo e non è nel tuo feed";
+                                break;
+                            }
+
                             StringBuilder to_return = new StringBuilder();
-                            to_return.append("* Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
+                            to_return.append("Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                             to_return.append("* Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                             to_return.append("* Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
                             for (Vote v: post.getVotes().values()) {
@@ -399,6 +468,8 @@ public class ServerRequestHandler implements Runnable {
                             res = "post non esiste";
                         } catch (NumberFormatException e){
                             res = "id_post deve essre un intero";
+                        } catch (UserNotExistException e) {
+                            res = "utente non esiste";
                         }
 
                         break;

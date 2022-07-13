@@ -8,6 +8,7 @@
   "mario": [
     "francesco"
   ],
+  "pluto": [],
   "francesco": [
     "ivan",
     "mario",
@@ -18,5 +19,6 @@
   ],
   "ivan": [
     "francesco"
-  ]
+  ],
+  "pippo": []
 }

@@ -116,38 +116,16 @@
     "title": "si beve?",
     "content": "offro io!",
     "date": "Jul 8, 2022, 3:44:27 PM",
-    "votes": {},
-    "rewinUsers": [],
-    "comments": [],
-    "num_iteration": 1
-  },
-  "7": {
-    "id": 7,
-    "author": "denise",
-    "title": "mi piace fra",
-    "content": "ma non diteglielo",
-    "date": "Jul 8, 2022, 4:22:26 PM",
     "votes": {
       "francesco": {
         "author": "francesco",
-        "date": "Jul 8, 2022, 4:22:58 PM",
+        "date": "Jul 13, 2022, 10:23:02 AM",
         "rate": 1
       }
     },
     "rewinUsers": [],
-    "comments": [
-      {
-        "author": "francesco",
-        "content": "mi piaci anche tu",
-        "date": "Jul 8, 2022, 4:29:27 PM"
-      },
-      {
-        "author": "francesco",
-        "content": "gia lo so",
-        "date": "Jul 8, 2022, 4:30:42 PM"
-      }
-    ],
-    "num_iteration": 4
+    "comments": [],
+    "num_iteration": 2
   },
   "8": {
     "id": 8,

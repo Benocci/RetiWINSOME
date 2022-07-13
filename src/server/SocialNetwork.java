@@ -43,7 +43,6 @@ public class SocialNetwork {
      * REQUIRES: to_add != null
      * MODIFIES: this
      * EFFECTS: aggiunge to_add agli utenti del social
-     * THROWS:
      */
     public void addUser(User to_add){
         users.putIfAbsent(to_add.getUsername(), to_add);
@@ -54,16 +53,16 @@ public class SocialNetwork {
     /*
      * REQUIRES: username != null
      * EFFECTS: ritorna l'utente con nome username
-     * THROWS:
      */
     public User getUser(String username){
         return users.get(username);
     }
 
+
     /*
      * REQUIRES: user != null
      * EFFECTS: ritorna una coda di stringe con gli username degli utenti che hanno almeno un tag in comune con user
-     * THROWS:
+     * RETURNS: ConcurrentLinkedQueue<String>
      */
     public ConcurrentLinkedQueue<String> listUsers(User user){
         ConcurrentLinkedQueue<String> to_return = new ConcurrentLinkedQueue<>();
@@ -82,41 +81,93 @@ public class SocialNetwork {
     }
 
     /*
-     * REQUIRES: username != null
-     * EFFECTS: ritorna l'intera lista di utenti mappata
-     * THROWS:
+     * EFFECTS: metodo getter della mappa di utenti
+     * RETURNS: ConcurrentHashMap<String, User>
      */
     public ConcurrentHashMap<String, User> getUsers() {
         return users;
     }
 
+    /*
+     * EFFECTS: metodo getter della mappa dei followers
+     * RETURNS: ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>
+     */
     public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getFollowersMap() {
         return followersMap;
     }
 
+    /*
+     * EFFECTS: metodo getter della mappa dei seguiti
+     * RETURNS: ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>
+     */
     public ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> getFollowingMap() {
         return followingMap;
     }
 
+    /*
+     * EFFECTS: metodo getter della mappa dei post
+     * RETURNS: ConcurrentHashMap<String, Post>
+     */
+    public ConcurrentHashMap<Integer, Post> getPostMap() {
+        return postMap;
+    }
+
+
+    /*
+     * REQUIRES: users != null
+     * MODIFIES: this.users
+     * EFFECTS: metodo setter della mappa
+     */
     public void setUsers(ConcurrentHashMap<String, User> users) {
         if(users != null){
             this.users = users;
         }
     }
 
+    /*
+     * REQUIRES: postMap != null
+     * MODIFIES: this.postMap
+     * EFFECTS: metodo setter della mappa
+     */
     public void setPostMap(ConcurrentHashMap<Integer, Post> postMap) {
         if(postMap != null){
             this.postMap = postMap;
-            this.post_id.addAndGet(postMap.keySet().size());
+            this.post_id.addAndGet(getLastIdPost(postMap));
         }
     }
 
+    /*
+     * REQUIRES: postMap != null
+     * RETURNS: intero con l'ultimo id_post della mappa
+     */
+    private int getLastIdPost(ConcurrentHashMap<Integer, Post> postMap){
+        int to_ret = 0;
+
+        for (Integer i:  postMap.keySet()) {
+            if(i > to_ret){
+                to_ret = i;
+            }
+        }
+
+        return to_ret;
+    }
+
+    /*
+     * REQUIRES: followersMap != null
+     * MODIFIES: this.followersMap
+     * EFFECTS: metodo setter della mappa
+     */
     public void setFollowersMap(ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followersMap) {
         if(followersMap != null){
             this.followersMap = followersMap;
         }
     }
 
+    /*
+     * REQUIRES: followingMap != null
+     * MODIFIES: this.followingMap
+     * EFFECTS: metodo setter della mappa
+     */
     public void setFollowingMap(ConcurrentHashMap<String, ConcurrentLinkedQueue<String>> followingMap) {
         if(followingMap != null){
             this.followingMap = followingMap;
@@ -218,6 +269,12 @@ public class SocialNetwork {
         postMap.putIfAbsent(id, new Post(id, username, title, content));
     }
 
+    /*
+     * REQUIRES: id_post >= 0 && username != null
+     * EFFECTS: controlla se il post id_post è nel feed di username
+     * THROWS: UserNotExistException se sollevata da viewBlog
+     * RETURNS: true se il post appartiene al feed, false altrimenti
+     */
     public boolean postInFeed(int id_post, String username) throws UserNotExistException {
         ArrayList<String> followingList = new ArrayList<>(followingMap.get(username));
 
@@ -230,8 +287,6 @@ public class SocialNetwork {
                 }
             }
         }
-
-
         return false;
     }
 
@@ -332,13 +387,6 @@ public class SocialNetwork {
         }
 
         return postMap.get(id_post);
-    }
-
-    /*
-     * EFFECTS: ritorna postMap
-     */
-    public ConcurrentHashMap<Integer, Post> getPostMap() {
-        return postMap;
     }
 
     /*
