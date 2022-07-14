@@ -132,7 +132,7 @@ public class SocialNetwork {
     public void setPostMap(ConcurrentHashMap<Integer, Post> postMap) {
         if(postMap != null){
             this.postMap = postMap;
-            this.post_id.addAndGet(getLastIdPost(postMap));
+            this.post_id.addAndGet(getLastIdPost(postMap)+1);
         }
     }
 
@@ -246,9 +246,6 @@ public class SocialNetwork {
             if(p.getAuthor().equals(username)){
                 to_return.add(p);
             }
-            else if(p.getRewinUsers().contains(username)){
-                to_return.add(p);
-            }
         }
 
         return to_return;
@@ -260,13 +257,13 @@ public class SocialNetwork {
      * EFFECTS: aggiunge un nuovo post
      * THROWS: UserNotExistException se username non è presente nel socialnewtok
      */
-    public void addPost(String username, String title, String content) throws UserNotExistException {
+    public void addPost(String username, String title, String content, String rewinAuthor) throws UserNotExistException {
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
 
         int id = post_id.getAndIncrement();
-        postMap.putIfAbsent(id, new Post(id, username, title, content));
+        postMap.putIfAbsent(id, new Post(id, username, title, content, rewinAuthor));
     }
 
     /*
@@ -374,6 +371,8 @@ public class SocialNetwork {
         }
 
         postMap.get(id_post).addRewin(username);
+
+        addPost(username, postMap.get(id_post).getTitle(), postMap.get(id_post).getContent(), postMap.get(id_post).getAuthor());
     }
 
     /*

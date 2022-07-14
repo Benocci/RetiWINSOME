@@ -63,7 +63,7 @@ public class RewardsNotification implements Runnable{
 
                     //stampo e aggiorno il nuovo valore solo se è differente dal vecchio valore ricevuto
                     if(new_rewards != old_reward) {
-                        System.out.println(received);
+                        System.out.println("\n<" + received);
                         System.out.print("> ");
                         old_reward = new_rewards;
                     }

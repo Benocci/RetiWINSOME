@@ -288,13 +288,19 @@ public class ServerRequestHandler implements Runnable {
                 ConcurrentLinkedQueue<Post> postView = null;
                 try {
                     postView = social.viewBlog(username);
+
+                    if(postView.isEmpty()){
+                        res = "Non hai postato niente.";
+                        break;
+                    }
+
                     StringBuilder to_return = new StringBuilder();
                     to_return.append("Lista dei post di " + username +  ":\n");
                     for (Post post : postView) {
                         to_return.append(" ----------------------------------------------------------------------\n");
                         to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
-                        if(!post.getAuthor().equals(username)){
-                            to_return.append(" * Rewin da " + post.getAuthor() + " del post:\n");
+                        if(post.getRewinAuthor() != null){
+                            to_return.append(" * Rewin da " + post.getRewinAuthor() + "\n");
                         }
                         to_return.append(" * Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                         to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
@@ -344,7 +350,7 @@ public class ServerRequestHandler implements Runnable {
                     String content = request.substring(0,request.indexOf("\""));
 
                     try {
-                        social.addPost(username, title, content);
+                        social.addPost(username, title, content, null);
                         res = "ok";
                     } catch (UserNotExistException e) {
                         e.printStackTrace();
@@ -365,11 +371,12 @@ public class ServerRequestHandler implements Runnable {
                 switch (line_parsed.get(0)) {
                     case "feed": {
                         ArrayList<String> feedUsersList = social.getFollowing(username);
-                        for (String s: social.listUsers(social.getUser(username))) {
-                            if(!feedUsersList.contains(s)){
-                                feedUsersList.add(s);
-                            }
+
+                        if(feedUsersList.isEmpty()){
+                            res = "Non segui nessuno.";
+                            break;
                         }
+
                         StringBuilder to_return = new StringBuilder();
                         to_return.append("Lista dei post del tuo feed:\n");
                         try {
@@ -391,9 +398,12 @@ public class ServerRequestHandler implements Runnable {
                                     to_return.append(" ----------------------------------------------------------------------\n");
                                     to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                                     to_return.append(" * Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
+                                    if(post.getRewinAuthor() != null){
+                                        to_return.append(" * Rewin del post di " + post.getRewinAuthor() + "\n");
+                                    }
                                     int size = post.getRewinUsers().size();
                                     if(size > 0){
-                                        to_return.append(" * Rewin fatto da: ");
+                                        to_return.append(" * I seguenti utenti hanno fatto il rewin di questo post: ");
                                         for (String s: post.getRewinUsers()) {
                                             if(size > 1){
                                                 to_return.append(s + ",");
@@ -422,7 +432,13 @@ public class ServerRequestHandler implements Runnable {
 
                             }
                             to_return.append(" ----------------------------------------------------------------------");
-                            res = to_return.toString();
+
+                            if(post_added.isEmpty()){
+                                res = "Nessun post nel tuo feed.";
+                            }
+                            else{
+                                res = to_return.toString();
+                            }
                         } catch (UserNotExistException e) {
                             e.printStackTrace();
                             res = "utente non esiste";
@@ -439,11 +455,6 @@ public class ServerRequestHandler implements Runnable {
                         try {
                             Post post = social.getPost(Integer.parseInt(line_parsed.get(1)));
 
-
-                            if(!post.getAuthor().equals(username) && !social.postInFeed(post.getId(), username) && !post.getRewinUsers().contains(username)){
-                                res = "il post non è tuo e non è nel tuo feed";
-                                break;
-                            }
 
                             StringBuilder to_return = new StringBuilder();
                             to_return.append("Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
@@ -468,8 +479,6 @@ public class ServerRequestHandler implements Runnable {
                             res = "post non esiste";
                         } catch (NumberFormatException e){
                             res = "id_post deve essre un intero";
-                        } catch (UserNotExistException e) {
-                            res = "utente non esiste";
                         }
 
                         break;

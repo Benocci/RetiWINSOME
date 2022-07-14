@@ -20,8 +20,9 @@ public class Post {
     private final ConcurrentLinkedQueue<String> rewinUsers;
     private final ConcurrentLinkedQueue<Comment> comments;
     private int num_iteration;
+    private final String rewinAuthor;
 
-    public Post(int id, String author, String title, String content){
+    public Post(int id, String author, String title, String content, String rewinAuthor){
         this.id = id;
         this.author = author;
         this.title = title;
@@ -31,6 +32,7 @@ public class Post {
         this.rewinUsers = new ConcurrentLinkedQueue<>();
         this.comments = new ConcurrentLinkedQueue<>();
         this.num_iteration = 1;
+        this.rewinAuthor = rewinAuthor;
     }
 
     //metodi get dei campi del post:
@@ -126,5 +128,9 @@ public class Post {
 
     public ConcurrentLinkedQueue<String> getRewinUsers() {
         return rewinUsers;
+    }
+
+    public String getRewinAuthor() {
+        return rewinAuthor;
     }
 }
