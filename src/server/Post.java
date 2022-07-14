@@ -21,8 +21,9 @@ public class Post {
     private final ConcurrentLinkedQueue<Comment> comments;
     private int num_iteration;
     private final String rewinAuthor;
+    private final int id_rewin;
 
-    public Post(int id, String author, String title, String content, String rewinAuthor){
+    public Post(int id, String author, String title, String content, String rewinAuthor, int id_rewin){
         this.id = id;
         this.author = author;
         this.title = title;
@@ -33,6 +34,7 @@ public class Post {
         this.comments = new ConcurrentLinkedQueue<>();
         this.num_iteration = 1;
         this.rewinAuthor = rewinAuthor;
+        this.id_rewin = id_rewin;
     }
 
     //metodi get dei campi del post:
@@ -132,5 +134,9 @@ public class Post {
 
     public String getRewinAuthor() {
         return rewinAuthor;
+    }
+
+    public int getId_rewin() {
+        return id_rewin;
     }
 }

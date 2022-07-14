@@ -300,7 +300,7 @@ public class ServerRequestHandler implements Runnable {
                         to_return.append(" ----------------------------------------------------------------------\n");
                         to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                         if(post.getRewinAuthor() != null){
-                            to_return.append(" * Rewin da " + post.getRewinAuthor() + "\n");
+                            to_return.append(" * Rewin del post " + post.getId_rewin() + " di " + post.getRewinAuthor() + "\n");
                         }
                         to_return.append(" * Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                         to_return.append(" * Numero voti: " + post.getVotes().size() + ", Valutazione totale: " + post.getVote() + ".\n");
@@ -350,7 +350,7 @@ public class ServerRequestHandler implements Runnable {
                     String content = request.substring(0,request.indexOf("\""));
 
                     try {
-                        social.addPost(username, title, content, null);
+                        social.addPost(username, title, content, null, -1);
                         res = "ok";
                     } catch (UserNotExistException e) {
                         e.printStackTrace();
@@ -399,7 +399,7 @@ public class ServerRequestHandler implements Runnable {
                                     to_return.append(" Informazioni sul post " + post.getId() + " creato in data " + post.getDate().toString() +":\n");
                                     to_return.append(" * Autore: " + post.getAuthor() + ", Titolo: \"" + post.getTitle() + "\", Contenuto: \"" + post.getContent() + "\".\n");
                                     if(post.getRewinAuthor() != null){
-                                        to_return.append(" * Rewin del post di " + post.getRewinAuthor() + "\n");
+                                        to_return.append(" * Rewin del post " + post.getId_rewin() + " di " + post.getRewinAuthor() + "\n");
                                     }
                                     int size = post.getRewinUsers().size();
                                     if(size > 0){
@@ -497,6 +497,17 @@ public class ServerRequestHandler implements Runnable {
                 try {
                     Post post = social.getPost(Integer.parseInt(line_parsed.get(0)));
                     if (username.equals(post.getAuthor())) {
+
+                        ConcurrentLinkedQueue<String> queueRewinUsers = post.getRewinUsers();
+                        for (String s: queueRewinUsers) {
+                            for (Post p: social.viewBlog(s)) {
+                                if(p.getRewinAuthor() != null){
+                                    if(p.getId_rewin() == post.getId()){
+                                        social.removePost(p.getId(), p.getAuthor());
+                                    }
+                                }
+                            }
+                        }
                         social.removePost(Integer.parseInt(line_parsed.get(0)), username);
                         res = "ok";
                     } else {
@@ -508,6 +519,8 @@ public class ServerRequestHandler implements Runnable {
                     res = "non hai l'autorizzazione";
                 } catch (NumberFormatException e){
                     res = "id_post deve essre un intero";
+                } catch (UserNotExistException e) {
+                    res = "utente non esiste";
                 }
 
                 break;

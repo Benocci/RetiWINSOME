@@ -257,13 +257,13 @@ public class SocialNetwork {
      * EFFECTS: aggiunge un nuovo post
      * THROWS: UserNotExistException se username non è presente nel socialnewtok
      */
-    public void addPost(String username, String title, String content, String rewinAuthor) throws UserNotExistException {
+    public void addPost(String username, String title, String content, String rewinAuthor, int id_rewin) throws UserNotExistException {
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
 
         int id = post_id.getAndIncrement();
-        postMap.putIfAbsent(id, new Post(id, username, title, content, rewinAuthor));
+        postMap.putIfAbsent(id, new Post(id, username, title, content, rewinAuthor, id_rewin));
     }
 
     /*
@@ -372,7 +372,7 @@ public class SocialNetwork {
 
         postMap.get(id_post).addRewin(username);
 
-        addPost(username, postMap.get(id_post).getTitle(), postMap.get(id_post).getContent(), postMap.get(id_post).getAuthor());
+        addPost(username, postMap.get(id_post).getTitle(), postMap.get(id_post).getContent(), postMap.get(id_post).getAuthor(), id_post);
     }
 
     /*
