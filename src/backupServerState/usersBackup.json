@@ -1,0 +1,98 @@
+{
+  "luca": {
+    "username": "luca",
+    "password": "ta",
+    "tags": [
+      "calcio",
+      "surf"
+    ],
+    "wallet": {
+      "username": "luca",
+      "transactions": []
+    },
+    "date": "Jul 17, 2022, 4:23:22 PM"
+  },
+  "denise": {
+    "username": "denise",
+    "password": "tu",
+    "tags": [
+      "musica",
+      "moda",
+      "cinema"
+    ],
+    "wallet": {
+      "username": "denise",
+      "transactions": [
+        {
+          "value": 0.4852030181290034,
+          "date": "Jul 16, 2022, 10:02:21 AM"
+        }
+      ]
+    },
+    "date": "Jul 16, 2022, 10:00:05 AM"
+  },
+  "mario": {
+    "username": "mario",
+    "password": "ne",
+    "tags": [
+      "calcio",
+      "vino"
+    ],
+    "wallet": {
+      "username": "mario",
+      "transactions": [
+        {
+          "value": 0.4852030181290034,
+          "date": "Jul 16, 2022, 10:04:12 AM"
+        },
+        {
+          "value": 0.2426015090645017,
+          "date": "Jul 16, 2022, 10:06:42 AM"
+        }
+      ]
+    },
+    "date": "Jul 16, 2022, 10:00:26 AM"
+  },
+  "francesco": {
+    "username": "francesco",
+    "password": "io",
+    "tags": [
+      "musica",
+      "calcio",
+      "cinema",
+      "videogiochi"
+    ],
+    "wallet": {
+      "username": "francesco",
+      "transactions": [
+        {
+          "value": 0.20794416243094188,
+          "date": "Jul 16, 2022, 10:02:21 AM"
+        },
+        {
+          "value": 0.20794416243094188,
+          "date": "Jul 16, 2022, 10:04:12 AM"
+        },
+        {
+          "value": 0.10397208121547094,
+          "date": "Jul 16, 2022, 10:06:42 AM"
+        }
+      ]
+    },
+    "date": "Jul 16, 2022, 9:59:52 AM"
+  },
+  "luigi": {
+    "username": "luigi",
+    "password": "no",
+    "tags": [
+      "videogiochi",
+      "informatica",
+      "scacchi"
+    ],
+    "wallet": {
+      "username": "luigi",
+      "transactions": []
+    },
+    "date": "Jul 16, 2022, 10:00:51 AM"
+  }
+}

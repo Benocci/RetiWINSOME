@@ -22,15 +22,7 @@ public class RegistrationRMI implements RegistrationRMIInterface{
 
         String user = username.toLowerCase();
 
-        if(socialNetwork.userExist(user)){
-            //System.out.println("Utente già presente!");
-            return false;
-        }
-
-        socialNetwork.addUser(new User(user, password, tags));
-
-        //System.out.println("Utente " + user + " aggiunto");
-        return true;
+        return socialNetwork.addUser(new User(user, password, tags));
     }
 
 }

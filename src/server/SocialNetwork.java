@@ -5,6 +5,7 @@ import exception.*;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /*
@@ -43,11 +44,16 @@ public class SocialNetwork {
      * REQUIRES: to_add != null
      * MODIFIES: this
      * EFFECTS: aggiunge to_add agli utenti del social
+     * RETURN: true se va a buon fine false altrimenti
      */
-    public void addUser(User to_add){
-        users.putIfAbsent(to_add.getUsername(), to_add);
-        followersMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
-        followingMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
+    public boolean addUser(User to_add){
+        if(users.putIfAbsent(to_add.getUsername(), to_add) == null){
+            followersMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
+            followingMap.putIfAbsent(to_add.getUsername(), new ConcurrentLinkedQueue<>());
+            return true;
+        }
+
+        return false;
     }
 
     /*
@@ -297,21 +303,22 @@ public class SocialNetwork {
      *          SameUserException se username è uguale all'autore del post
      */
     public boolean ratePost(int id_post, String username, int vote_value) throws UserNotExistException, PostNotExistException, VoteNotValidException, SameUserException {
+        Post post = postMap.get(id_post);
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
-        if(!postMap.containsKey(id_post)) {
+        if(post == null) {
             throw new PostNotExistException();
         }
         if(vote_value != -1 && vote_value != 1){
             throw new VoteNotValidException();
         }
 
-        if(postMap.get(id_post).getVotes().containsKey(username)){
+        if(post.getVotes().containsKey(username)){
             return false;
         }
         else{
-            postMap.get(id_post).addVote(username, vote_value);
+            post.addVote(username, vote_value);
             return true;
         }
     }
@@ -325,14 +332,15 @@ public class SocialNetwork {
      *          SameUserException se username è uguale all'autore del post
      */
     public void commentPost(int id_post, String username, String content) throws SameUserException, UserNotExistException, PostNotExistException {
+        Post post = postMap.get(id_post);
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
-        if(!postMap.containsKey(id_post)) {
+        if(post == null) {
             throw new PostNotExistException();
         }
 
-        postMap.get(id_post).addComment(username, content);
+        post.addComment(username, content);
     }
 
     /*
@@ -363,16 +371,32 @@ public class SocialNetwork {
      *          SameUserException se username è uguale all'autore del post
      */
     public void rewinPost(int id_post, String username) throws PostNotExistException, SameUserException, UserNotExistException {
+        Post post = postMap.get(id_post);
         if(!users.containsKey(username)){
             throw new UserNotExistException();
         }
-        if(!postMap.containsKey(id_post)) {
+        if(post == null) {
             throw new PostNotExistException();
         }
 
-        postMap.get(id_post).addRewin(username);
+        AtomicBoolean ex = new AtomicBoolean(false);
+        postMap.computeIfPresent(id_post, (id, post1) -> {
+            try {
+                post.addRewin(username);
+                addPost(username, post.getTitle(), post.getContent(), post.getAuthor(), id_post);
+            } catch (SameUserException e) {
+                ex.set(true);
+            } catch (UserNotExistException ignore){
+                ;
+            }
 
-        addPost(username, postMap.get(id_post).getTitle(), postMap.get(id_post).getContent(), postMap.get(id_post).getAuthor(), id_post);
+            return post1;
+        });
+
+        if(ex.get()){
+            throw new SameUserException();
+        }
+
     }
 
     /*

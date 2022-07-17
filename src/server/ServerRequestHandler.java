@@ -628,19 +628,31 @@ public class ServerRequestHandler implements Runnable {
 
                 String username = ServerMainWINSOME.loggedUsers.get(channel);
                 Wallet wallet = null;
+                StringBuilder to_return = new StringBuilder();
                 try {
                     wallet = social.getWallet(username);
 
                     if (line_parsed.size() != 0 && line_parsed.get(0).equals("btc")) {
                         double walletInBTC = wallet.getWalletinBitcoin();
                         if(walletInBTC == -1){
-                            res = "Conversione in bitcoin fallita, valore del wallet: " + wallet.getWalletAmount();
+                            res = "Conversione in bitcoin fallita, valore del wallet in WINCOIN: " + wallet.getWalletAmount();
                         }
                         else{
                             res = "Valore del wallet in bitcoin: " + walletInBTC;
                         }
                     } else {
-                        res = "Valore del wallet: " + wallet.getWalletAmount();
+                        to_return.append("Valore del wallet in WINCOIN: " + wallet.getWalletAmount() + "\n");
+                        if(wallet.getTransactions().isEmpty()){
+                            to_return.append(" * Lista delle transazioni vuota.");
+                        }
+                        else{
+                            to_return.append(" * Lista delle transazioni: \n");
+                            for (Transaction t:  wallet.getTransactions()) {
+                                to_return.append("  * Valore:" + t.getValue() + ", in data " + t.getDate() + ".\n");
+                            }
+                        }
+
+                        res = to_return.toString();
                     }
 
                 } catch (UserNotExistException e) {
